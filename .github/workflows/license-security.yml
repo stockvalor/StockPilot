@@ -17,4 +17,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run licensing regression tests
-        run: node --test licensing/tests/license-security.test.mjs
+        run: node --test licensing/tests/*.test.mjs
