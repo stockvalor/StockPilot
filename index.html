@@ -125,7 +125,14 @@ function exportOrderText(i){
 .copilotbox{position:relative}
 </style>
 <script id="stockpilot-copilot-mobile-input-helper">(function(){function init(){const field=document.getElementById('copilotQuestion');if(!field)return;field.removeAttribute('readonly');field.removeAttribute('disabled');const label=document.querySelector('label[for="copilotQuestion"]');if(label){label.style.cursor='text';label.addEventListener('click',function(){field.focus()})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
-</body></html>`;
+<style>
+/* Mobile menu: keep content visible while expanded */
+@media(max-width:850px){
+ body.spMenuOpen .shell>.side{position:relative!important;top:auto!important;left:auto!important;right:auto!important;width:100%!important;max-height:min(58dvh,480px)!important;margin:0 0 16px!important;z-index:2!important;box-shadow:0 8px 24px #0005!important}
+ body.spMenuOpen::before{display:none!important}
+ body.spMenuOpen .shell>main{position:relative;z-index:1}
+}
+</style></body></html>`;
  const url=URL.createObjectURL(new Blob([doc],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=o.id+'-bon-commande-A4.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
  notify('Bon de commande A4 téléchargé. Ouvrez-le dans Chrome puis utilisez Imprimer / Enregistrer en PDF.');
 }
