@@ -1,0 +1,30 @@
+// Cross-module integration: real tenant adapter + backup builder in one simulated browser.
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const path=require('node:path');
+const values=new Map();
+const storage={getItem:k=>values.has(k)?values.get(k):null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
+const ctx={window:{localStorage:storage}};
+for(const file of ['tenant-storage-draft.js','tenant-backup-payload-draft.js'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
+const tenant=ctx.window.StockPilotTenantStorageDraft;
+const backup=ctx.window.StockPilotTenantBackupDraft;
+const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222';
+const ca='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',cb='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const k='stockpilot-futuriste-orders-v2';
+test('same browser, separate tenants, no cross-company backup',()=>{
+  const A=tenant.forTenant(a,ca,storage),B=tenant.forTenant(b,cb,storage);
+  storage.setItem(k,'legacy-secret');
+  A.write(k,JSON.stringify({items:[{id:'only-A'}],history:[]}));
+  B.write(k,JSON.stringify({items:[{id:'only-B'}],history:[]}));
+  const validate=(_,v)=>JSON.parse(v);
+  const pa=backup.createPayload(A,validate,ca);
+  const pb=backup.createPayload(B,validate,cb);
+  assert.match(pa.data[k],/only-A/);
+  assert.doesNotMatch(pa.data[k],/only-B|legacy-secret/);
+  assert.match(pb.data[k],/only-B/);
+  assert.doesNotMatch(pb.data[k],/only-A|legacy-secret/);
+  assert.throws(()=>backup.validatePayloadCompany(pa,cb));
+  assert.equal(storage.getItem(k),'legacy-secret');
+});
