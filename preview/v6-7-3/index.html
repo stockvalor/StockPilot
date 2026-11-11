@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="#090d1c" name="theme-color"/><title>StockPilot AI V6.7.3 — Mobile</title><style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#090d1c;color:#f3f5ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#35206a88,transparent 40%),radial-gradient(ellipse at 0% 60%,#074d6555,transparent 42%),#090d1c;min-height:100vh}button,input{font:inherit}button{cursor:pointer}header{border-bottom:1px solid #ffffff16;background:#0c1125c9;backdrop-filter:blur(18px);position:sticky;top:0;z-index:3}.head{max-width:1220px;margin:auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{font-size:22px;font-weight:850;letter-spacing:-1px}.logo b{color:#65e6fa}.ai{font-size:11px;border:1px solid #9665ff;color:#c4a7ff;border-radius:6px;padding:3px 5px;margin-left:5px}.pill{border:1px solid #4a426c;border-radius:999px;color:#c9c8e5;padding:8px 12px;font-size:12px}.shell{max-width:1220px;margin:auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;padding:24px 22px 70px}.side{display:flex;flex-direction:column;gap:8px}.nav{border:1px solid transparent;background:transparent;color:#a6aac9;text-align:left;padding:14px 16px;border-radius:12px;font-weight:650}.nav.active{background:linear-gradient(95deg,#6744d344,#18d4f51c);border-color:#8663ff66;color:white}.asideNote{margin-top:26px;border:1px solid #4e4570;border-radius:16px;padding:16px;background:#16172d;font-size:13px;color:#b6b9d1}.asideNote strong{display:block;color:white;margin-bottom:8px}.eyebrow{color:#70e8fa;font-size:12px;letter-spacing:2px;font-weight:750;text-transform:uppercase}.intro{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}h1{font-size:clamp(27px,4vw,38px);letter-spacing:-1.5px;margin:7px 0}p{color:#a9aecb;line-height:1.6;margin:6px 0}.btn{border:1px solid #665d91;background:#1b1c38;color:#f6f5ff;padding:12px 16px;border-radius:12px;font-weight:750}.btn.main{background:linear-gradient(110deg,#9c61ff,#41d8f5);color:#080e21;border:0;box-shadow:0 8px 30px #684aff33}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.card{border:1px solid #ffffff1b;background:linear-gradient(150deg,#1a1b35eb,#111729eb);border-radius:18px;padding:19px;box-shadow:0 16px 40px #0000001a}.statName{font-size:12px;color:#adb1cd}.statVal{font-size:clamp(21px,2.6vw,31px);font-weight:850;margin:11px 0 5px}.trend{color:#71e7dd;font-size:12px}.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);gap:16px;margin-top:17px}.sectionTitle{font-size:18px;font-weight:800;margin:0 0 14px}.assistant{background:radial-gradient(circle at 90% 0%,#7534d64f,transparent 52%),linear-gradient(140deg,#211b44,#11192d);border-color:#7552bc8c}.assistantTop{display:flex;gap:12px;align-items:center;margin-bottom:14px}.orb{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(130deg,#ad5fff,#31d6ed);font-size:25px;box-shadow:0 0 25px #9856ff55}.tag{display:inline-block;border-radius:999px;background:#39d9ed1a;color:#78e7f4;padding:5px 9px;font-size:11px}.insight{padding:13px 15px;border:1px solid #ffffff20;background:#ffffff08;border-radius:13px;margin:10px 0;display:flex;gap:12px;align-items:start}.dot{width:9px;height:9px;border-radius:50%;background:#f7ba62;margin-top:7px;flex:none}.dot.cyan{background:#51ddf3}.dot.purple{background:#b48aff}.insight strong{display:block;font-size:14px}.insight small{color:#abb0cc;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}.barrow{display:flex;justify-content:space-between;font-size:13px;color:#b7bdd6;margin:15px 0 8px}.bar{height:10px;border-radius:99px;background:#32324b;overflow:hidden}.bar span{height:100%;display:block;background:linear-gradient(90deg,#9262ff,#43d8f0);border-radius:99px}.items{display:grid;gap:10px}.item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #ffffff16}.item:last-child{border:0}.item small{display:block;color:#a7aac8;margin-top:4px}.count{font-weight:750;color:#6ce4ee}.warn{color:#ffc078}.view{display:none}.view.active{display:block}.field{width:100%;padding:13px;border:1px solid #575679;background:#10152b;color:white;border-radius:11px;margin:8px 0 13px}.notice{color:#b3b6d0;font-size:12px;margin-top:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2b2452;border:1px solid #aa81f4;border-radius:12px;padding:13px 18px;display:none;z-index:10;max-width:90vw}.toast.show{display:block}@media(max-width:850px){.shell{grid-template-columns:1fr;padding:14px 14px 60px;gap:15px}.side{flex-direction:row;overflow-x:auto;gap:6px}.nav{white-space:nowrap;padding:11px 12px;font-size:13px}.asideNote{display:none}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.head{padding:14px}.intro{align-items:start;flex-direction:column}.card{padding:16px}}@media(max-width:380px){.stats{gap:8px}.statVal{font-size:22px}.pill{display:none}}
+
+.ordergrid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.orderrow{display:grid;grid-template-columns:1fr 88px 95px;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #ffffff20}.orderrow input{width:100%;min-width:0;margin:0}.orderrow small{display:block;color:#aeb3cf;margin-top:5px}.orderrow strong{font-size:14px}.muted{color:#aeb3cf}.status{border-radius:999px;padding:5px 9px;font-size:11px;color:#7ee9f6;background:#40d8f521}.checkline{display:flex;align-items:center;gap:9px}.checkline input{accent-color:#9c61ff;width:19px;height:19px}.summary{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ffffff18}.hint{background:#6b54d51c;border:1px solid #805cbb77;padding:13px;border-radius:12px;color:#d4d1f1;font-size:13px;line-height:1.5}.mini{font-size:12px}.orderrow .field{padding:10px}.orderrow button{padding:9px 7px}.historyitem{padding:11px 0;border-bottom:1px solid #ffffff1a;font-size:13px}.historyitem small{display:block;color:#b6b9d1;margin-top:5px}@media(max-width:850px){.ordergrid{grid-template-columns:1fr}}@media(max-width:450px){.orderrow{grid-template-columns:1fr 76px;gap:8px}.orderrow .selectcol{grid-column:1 / -1}.orderrow .selectcol label{display:flex;align-items:center;gap:8px}}
+.productFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.productFields label{display:block;margin-bottom:6px}.productFields input{width:100%}@media(max-width:600px){.productFields{grid-template-columns:1fr}}
+
+.reason{grid-column:1/-1;border-left:3px solid #51d9ef;background:#32d3ed0d;padding:11px 13px;border-radius:8px;color:#d1d8f3;font-size:13px;line-height:1.6}.reason strong{color:#77e6f2}.reason em{font-style:normal;color:#c6b3ff}.reason-note{margin-top:8px;color:#aeb6d2;font-size:12px}
+
+/* V6.4: mobile-first containment; previous releases remain unchanged */
+html,body{max-width:100%;overflow-x:hidden}
+.shell,.shell>*,main,.view,.card,.grid,.stats,.ordergrid,.account-fields,#spCloudAuth,#spCloudAuth *{min-width:0;max-width:100%}
+.view{overflow-wrap:anywhere}
+#account>.card:not(#spCloudAuth){display:none!important}
+#account>.eyebrow{font-size:11px}
+#spCloudAuth .account-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#spCloudAuth label{display:block;min-width:0;overflow-wrap:anywhere}
+#spCloudAuth input{display:block;width:100%;max-width:100%;min-width:0}
+#spCloudAuth .actions{display:flex;flex-wrap:wrap;align-items:stretch}
+#spCloudAuth .actions .btn{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:center}
+@media(max-width:850px){
+ .shell{display:block;width:100%;max-width:100%;padding:14px 12px 64px}
+ .shell main{width:100%;max-width:100%;min-width:0}
+ .side{width:100%;max-width:100%;overflow-x:auto}
+ .view,.card,#spCloudAuth{width:100%;max-width:100%}
+ .head{padding:12px}
+ #spCloudAuth .account-fields{grid-template-columns:minmax(0,1fr)}
+ #spCloudAuth .actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ #spCloudAuth .actions .btn{width:100%;font-size:15px}
+ #account h1{font-size:clamp(25px,7vw,34px)}
+}
+
+/* StockPilot V6.5: smartphone layout, isolated preview */
+@media(max-width:850px){
+ .shell{display:block!important;padding:14px 12px 70px!important}
+ .shell>main,.shell>main>.view{width:100%!important;min-width:0!important;max-width:100%!important}
+ .head{justify-content:flex-start!important;gap:10px}
+ .spMobileMenu{display:inline-flex!important;align-items:center;justify-content:center;min-width:42px;min-height:42px;border:1px solid #655b89;border-radius:11px;background:#1b1c38;color:white;font-size:22px}
+ .shell>.side{display:none!important;flex-direction:column!important;position:fixed!important;top:70px;left:10px;right:10px;width:auto!important;max-height:calc(100dvh - 85px);overflow-y:auto!important;z-index:50;background:#11172c;border:1px solid #685c95;border-radius:16px;padding:12px;box-shadow:0 15px 55px #000b}
+ body.spMenuOpen .shell>.side{display:flex!important}
+ .shell>.side .nav{width:100%;text-align:left;white-space:normal;font-size:15px;padding:14px}
+ body.spMenuOpen::before{content:"";position:fixed;inset:0;background:#0009;z-index:40}
+ #account>.card:not(#spCloudAuth){display:none!important}
+ #account .card,#spCloudAuth{max-width:100%!important}
+ #spCloudAuth .account-fields{grid-template-columns:minmax(0,1fr)!important}
+ #spCloudAuth .actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+ #spCloudAuth .actions .btn{width:100%!important;max-width:100%!important}
+}
+@media(min-width:851px){.spMobileMenu{display:none!important}}
+
+/* V6.6: clean account experience without changing legacy data */
+#account>.card:not(#spCloudAuth){display:none!important}
+#spCloudAuth .spAuthTabs{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+#spCloudAuth .spAuthTabs .btn{flex:1;min-width:135px}
+#spCloudAuth.spLoginMode #spCompanySignupField,#spCloudAuth.spLoginMode #spSignup{display:none!important}
+#spCloudAuth.spSignupMode #spSignin{display:none!important}
+@media(max-width:850px){#spCloudAuth .spAuthTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#spCloudAuth .spAuthTabs .btn{min-width:0;padding:11px 8px}}
+</style><script defer="" src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><style id="copilot-v45">.copilotbox{margin:18px 0;padding:18px;border:1px solid #6652aa;border-radius:18px;background:#1d1b39}.copilotbox textarea{display:block;width:100%;min-height:100px;box-sizing:border-box;margin:10px 0 14px;padding:14px;background:#10162c;color:#f6f2ff;border:1px solid #7663a9;border-radius:13px;font:inherit;resize:vertical}.copilotreply{margin-top:14px;line-height:1.65;white-space:pre-wrap;background:#262044;border:1px solid #735ab5;border-radius:12px;padding:15px;color:#eee9ff}.copilotreply strong{color:#74e4f5}</style><style id="stockpilot-mobile-v57">
+/* Mobile navigation: no horizontal clipping or invisible left-hand labels. */
+html,body{max-width:100%;overflow-x:hidden}
+.shell>main{min-width:0;max-width:100%}
+@media(max-width:850px){
+ .shell{display:block;width:100%;max-width:100%;padding:14px 14px 60px}
+ .side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:100%;overflow:visible;margin:0 0 20px}
+ .side .nav{display:flex;align-items:center;justify-content:center;white-space:normal;overflow-wrap:anywhere;text-align:center;min-width:0;width:100%;min-height:52px;padding:10px 8px;font-size:13px;line-height:1.3}
+ .side .asideNote{display:none}
+ .shell>main,.view,.card,.intro,.grid,.ordergrid{min-width:0;max-width:100%}
+ .actions{min-width:0}
+ .actions .btn,.actions label.btn{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+ .head{min-width:0}
+}
+@media(max-width:370px){.side .nav{font-size:12px;padding:9px 5px}}
+
+/* V5.8 : ergonomie des écrans étroits sans modifier l'identité graphique */
+@media(max-width:850px){.shell{overflow-x:clip}.side{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{overflow:visible}.item,.summary,.barrow{min-width:0;flex-wrap:wrap}.item>div{min-width:0;overflow-wrap:anywhere}.orderrow{min-width:0}.orderrow>*{min-width:0}.actions .btn{min-height:44px}input,textarea,select{max-width:100%}}
+@media(max-width:390px){.head .logo{font-size:19px}.side .nav{font-size:12px;padding:10px 6px}.card{padding:14px}}
+</style><style id="account-v60">.account-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.account-fields label{display:block;color:#dcdcf5;font-size:13px;font-weight:650}.account-fields .field{display:block;width:100%;margin-top:8px}.account-fields select{background:#11182d;color:#fff}@media(max-width:650px){.account-fields{grid-template-columns:1fr}}</style><style>#spRecoveryActions{margin-top:12px}#spRecoveryActions .btn{background:transparent;border:0;color:#8dd9f4;text-decoration:underline;padding:8px 0}#spNewPasswordPanel{margin-top:14px}#spNewPasswordPanel[hidden]{display:none!important}#spNewPasswordPanel .field{display:block;width:100%;margin:8px 0 14px}#spNewPasswordPanel .btn{width:100%}</style></head><body><header><div class="head"><button class="spMobileMenu" id="spMobileMenu" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="spNav">☰</button><div class="logo">⬡ Stock<span style="color:#65e6fa">Pilot</span><span class="ai">AI</span></div><div class="pill">✦ Concept 03 · Futuriste</div></div></header><div class="shell"><aside class="side" id="spNav"><button class="nav active" data-view="dashboard">◫   Tableau de bord</button><button class="nav" data-view="assistant">✧   Assistant IA</button><button class="nav" data-view="stock">▤   Mes stocks</button><button class="nav" data-view="orders">◈   Commandes IA</button><button class="nav" data-view="scanner">▣   Scanner</button><button class="nav" data-view="account">♙   Compte client</button><button class="nav" data-view="help">?   Manuel intelligent</button><div class="asideNote">Version V6.6 · Connexion Supabase en test. Stocks et commandes V6.1 restent locaux. Sauvegardez vos données JSON.</div></aside><main><section class="view active" id="dashboard"><div class="intro"><div><div class="eyebrow">Vue d'ensemble intelligente</div><h1>Bonjour, bienvenue 👋</h1><p>Votre activité en un coup d'œil.</p></div><button class="btn main" onclick="go('scanner')">＋ Ajouter un produit</button></div><div class="stats"><div class="card"><div class="statName">Valeur du stock</div><div class="statVal" id="kpiValue">—</div><div class="trend">Coûts unitaires estimés</div></div><div class="card"><div class="statName">Références</div><div class="statVal" id="kpiRefs">—</div><div class="trend">Références dans cet appareil</div></div><div class="card"><div class="statName">Stock faible</div><div class="statVal" id="kpiLow" style="color:#ffc078">—</div><div class="trend">Sous leur seuil</div></div><div class="card"><div class="statName">Actions suggérées</div><div class="statVal" id="kpiActions" style="color:#a995ff">—</div><div class="trend">Produits sous leur seuil</div></div></div><div class="grid"><div class="card assistant"><div class="assistantTop"><div class="orb">✧</div><div><div class="sectionTitle" style="margin:0">Votre copilote IA</div><span class="tag">✦ Suggestions de démonstration</span></div></div><p>Les informations importantes, sans avoir à chercher dans des tableaux.</p><div class="insight"><span class="dot"></span><div><strong>Consultez les alertes de stock</strong><small>Vérifiez les niveaux de stock et les seuils de réapprovisionnement.</small></div></div><div class="insight"><span class="dot cyan"></span><div><strong>Optimisez votre inventaire</strong><small>Repérez les articles peu mouvementés pour limiter l'immobilisation.</small></div></div><div class="insight"><span class="dot purple"></span><div><strong>Préparez les prochaines commandes</strong><small>Proposition à valider avant toute action.</small></div></div><div class="actions"><button class="btn main" onclick="go('assistant')">Explorer l'assistant ✦</button><button class="btn" onclick="go('orders')">Préparer une commande</button></div></div><div class="card"><div class="sectionTitle">Répartition du stock</div><p style="font-size:13px">Visualisation d'exemple</p><div class="barrow"><span>Équipement</span><b>42 %</b></div><div class="bar"><span style="width:42%"></span></div><div class="barrow"><span>Consommables</span><b>33 %</b></div><div class="bar"><span style="width:33%;background:linear-gradient(90deg,#3b99f1,#52e7e5)"></span></div><div class="barrow"><span>Pièces</span><b>25 %</b></div><div class="bar"><span style="width:25%;background:linear-gradient(90deg,#b466e8,#e98cc5)"></span></div><div class="sectionTitle" style="margin-top:30px">Dernières alertes</div><div class="item"><div><strong>Gants de protection</strong><small>Seuil minimal atteint</small></div><span class="warn">Faible</span></div><div class="item"><div><strong>Cartons d'expédition</strong><small>Quantité à vérifier</small></div><span class="warn">Faible</span></div></div></div></section><section class="view" id="assistant"><div class="eyebrow">Assistant de gestion</div><h1>Votre copilote IA ✧</h1><p>Un espace pour les analyses, les conseils et les actions soumises à validation.</p><div class="card assistant"><div class="sectionTitle">Comment puis-je vous aider ?</div><div class="copilotbox"><label class="mini" for="copilotQuestion">Posez votre question en français</label><textarea aria-label="Votre demande au copilote" id="copilotQuestion" placeholder="Ex. Prépare mes commandes avec un budget de 200 €" rows="3"></textarea><div class="actions"><button class="btn main" onclick="askCopilot()">✦ Analyser ma demande</button><button class="btn" onclick="setCopilotExample('Prépare mes commandes avec un budget maximum de 200 €')">Exemple : budget 200 €</button><button class="btn" onclick="setCopilotExample('Quels produits sont sous le seuil ?')">Voir les ruptures</button></div><div aria-live="polite" class="copilotreply" id="copilotReply">Les réponses utilisent vos stocks enregistrés sur cet appareil. Aucune IA externe n'est connectée.</div></div><div class="actions"><button class="btn" onclick="reply('Consultez la section Commandes IA pour connaître les références sous le seuil.')">Analyser les ruptures</button><button class="btn" onclick="go('orders')">Préparer une commande</button><button class="btn" onclick="reply('Stocks dormants : une analyse des mouvements réels sera nécessaire.')">Identifier les stocks dormants</button></div><div class="insight" id="answer" style="margin-top:20px"><span class="dot cyan"></span><div><strong>Assistant de démonstration</strong><small>Choisissez une action pour prévisualiser la réponse. Aucune analyse IA réelle n'est exécutée.</small></div></div></div></section><section class="view" id="stock"><div class="eyebrow">Inventaire</div><h1>Mes stocks</h1><p>Une liste lisible et des alertes visibles immédiatement.</p><div class="card"><div class="sectionTitle">Inventaire actuel</div><div class="items" id="stockList"></div><button class="btn main" onclick="go('scanner')" style="margin-top:16px">＋ Ajouter un produit</button></div></section><section class="view" id="orders"><div class="intro"><div><div class="eyebrow">Copilote • Préparation assistée</div><h1>Commandes à préparer ✧</h1><p>StockPilot calcule les besoins à partir des quantités et des seuils. Vous vérifiez, ajustez et validez.</p></div><span class="tag">Aucun envoi fournisseur</span></div><div class="hint">✦ <b>Prototype fonctionnel local :</b> inventaire d'exemple modifiable. Les propositions reposent sur une règle de réapprovisionnement transparente, pas sur un modèle IA connecté. Les commandes approuvées restent enregistrées uniquement sur cet appareil.</div><div class="ordergrid" style="margin-top:18px"><div><div class="card"><div class="sectionTitle">1. Inventaire et seuils</div><p class="mini">Modifiez les stocks, les seuils et les objectifs pour recalculer les suggestions.</p><div id="inventoryEditor"></div><div class="actions"><button class="btn main" onclick="generateDraft()">✧ Analyser et proposer</button><button class="btn" onclick="resetInventory()">Réinitialiser l'exemple</button></div></div><div class="card" style="margin-top:16px"><div class="sectionTitle">2. Proposition à vérifier</div><div class="hint" style="border:1px solid #6b5bd6;background:#292149;color:#f5f2ff;margin:12px 0;font-weight:650">✦ Pour comprendre une commande, appuyez sur le bouton violet « Pourquoi cette quantité ? » sous chaque produit.</div><p class="mini">Cochez les lignes à commander et corrigez les quantités. Rien n'est commandé automatiquement.</p><div id="draftRows"></div><label class="mini" for="orderSupplier">Fournisseur (facultatif)</label><input class="field" id="orderSupplier" maxlength="120" placeholder="Nom du fournisseur — facultatif"/><div class="actions"><button class="btn main" id="approveBtn" onclick="approveDraft()">✓ Valider le brouillon</button><button class="btn" onclick="cancelDraft()">Annuler la proposition</button></div><p aria-live="polite" class="notice" id="draftNotice"></p></div></div><div><div class="card assistant"><div class="sectionTitle">Résumé du copilote</div><div id="orderSummary"></div><div class="hint" style="margin-top:16px">Les montants sont des <b>estimations</b> basées sur les prix unitaires renseignés. Aucun fournisseur, paiement ou système de commande externe n'est connecté. La réception met à jour uniquement le stock local.</div></div><div class="card" style="margin-top:16px"><div class="sectionTitle">3. Suivi des commandes</div><p class="mini">La validation prépare une commande exportable. Vous pouvez ensuite confirmer sa réception pour mettre à jour les stocks.</p><div id="orderHistory"></div></div></div></div></section><section class="view" id="account"><div class="eyebrow">Espace entreprise · Accès sécurisé</div><h1>Compte client</h1><p>Connectez-vous à votre espace entreprise. Les stocks et commandes de démonstration restent locaux tant que la synchronisation cloud n’est pas activée.</p><div class="card" style="max-width:760px"><div class="sectionTitle">Informations de l'entreprise</div><div class="account-fields"><label>Nom de l'entreprise<input autocomplete="organization" class="field" id="accCompany" maxlength="100" placeholder="Ex. Société Démo"/></label><label>Nom du contact<input autocomplete="name" class="field" id="accContact" maxlength="100" placeholder="Ex. Responsable des stocks"/></label><label>E-mail professionnel<input autocomplete="email" class="field" id="accEmail" maxlength="160" placeholder="contact@exemple.fr" type="email"/></label><label>Rôle envisagé<select class="field" id="accRole"><option value="administrateur">Administrateur</option><option value="gestionnaire">Gestionnaire des stocks</option><option value="lecture">Lecture seule</option></select></label></div><p class="mini">Le rôle est indicatif : les permissions ne sont pas encore appliquées. N'utilisez pas de véritables coordonnées clients dans cette démonstration.</p><div class="actions"><button class="btn main" onclick="saveAccountDemo()">✓ Enregistrer ce profil de démonstration</button><button class="btn" onclick="clearAccountDemo()">Effacer le profil</button></div><p class="notice" id="accStatus" role="status"></p></div><div class="card" id="spCloudAuth" style="margin:18px 0;border:1px solid #55d7c5"><div class="sectionTitle">🔐 Compte sécurisé · StockPilot AI V6.7.3</div><p class="mini">Connexion réelle à Supabase. Les stocks de la V6.1 restent sur cet appareil et ne sont pas envoyés automatiquement.</p><div id="spCloudGuest"><div class="spAuthTabs" role="group" aria-label="Choisir un parcours"><button type="button" id="spModeLogin" class="btn main">Se connecter</button><button type="button" id="spModeSignup" class="btn">Créer un compte</button></div><div class="account-fields"><label>E-mail<input autocomplete="email" class="field" id="spAuthEmail" placeholder="vous@entreprise.fr" type="email"/></label><label>Mot de passe<input autocomplete="current-password" class="field" id="spAuthPassword" minlength="8" placeholder="8 caractères minimum" type="password"/></label><label id="spCompanySignupField">Nom de l’entreprise (inscription)<input class="field" id="spAuthCompany" maxlength="160" placeholder="Ma société"/></label></div><div class="actions"><button class="btn main" id="spSignup">Créer mon compte</button><button class="btn" id="spSignin">Me connecter</button></div><div id="spRecoveryActions"><button type="button" class="btn" id="spForgotPassword">Mot de passe oublié ?</button></div><div id="spNewPasswordPanel" hidden><label>Nouveau mot de passe<input class="field" id="spNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum"></label><button type="button" class="btn main" id="spSaveNewPassword">Enregistrer mon nouveau mot de passe</button></div></div><div hidden="" id="spCloudConnected"><p id="spCloudIdentity"></p><div class="actions"><button class="btn main" id="spCreateCompany">Enregistrer mon entreprise</button><button class="btn" id="spLoadCompanies">Actualiser mes entreprises</button><button class="btn" id="spSignout">Se déconnecter</button></div><div id="spConnectedPasswordPanel" style="margin:16px 0"><label style="display:block;margin-bottom:8px">Définir un nouveau mot de passe<input id="spConnectedNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum" style="display:block;width:100%;margin-top:8px"></label><button type="button" class="btn main" id="spConnectedSavePassword">Enregistrer le nouveau mot de passe</button><p class="mini">Cette action modifie le mot de passe du compte actuellement connecté.</p></div><div id="spCloudCompanies"></div></div><p aria-live="polite" class="mini" id="spAuthStatus" role="status">Connexion cloud en attente.</p><p class="mini">Pour confirmer une inscription, utilisez l'adresse HTTPS autorisée de StockPilot. Les stocks et commandes locaux ne sont pas encore synchronisés avec Supabase.</p></div></section><section class="view" id="scanner"><div class="eyebrow">Scanner intelligent · V5.8</div><h1>Scanner et ajouter un produit</h1><p>Utilisez « Prendre une photo » pour scanner un code-barres, ou saisissez un code puis utilisez « Rechercher le produit avec ce code ». Confirmez la fiche avant tout ajout.</p><div class="card"><div class="sectionTitle">1. Lire un code-barres</div><div class="actions"><label class="btn main" for="scanPhoto" style="cursor:pointer">📷 Prendre une photo</label><input accept="image/*" aria-label="Photographier un code-barres" capture="environment" id="scanPhoto" style="position:absolute;width:1px;height:1px;opacity:0" type="file"/><label class="btn" for="scanGallery" style="cursor:pointer">▣ Choisir une image</label><input accept="image/*" aria-label="Choisir une image du code-barres" id="scanGallery" style="position:absolute;width:1px;height:1px;opacity:0" type="file"/></div><p aria-live="polite" class="notice" id="scanStatus">Photographiez le code-barres bien net. Si le navigateur ne permet pas la lecture, saisissez les chiffres sous le code-barres.</p><div id="scanReader" style="display:none"></div><label class="mini" for="scanCode">Code-barres EAN / UPC ou référence interne</label><input class="field" id="scanCode" inputmode="numeric" placeholder="Ex. 3017620422003"/><div class="actions"><button class="btn" id="identifyProductBtn" onclick="lookupProduct()" type="button">⌕ Rechercher le produit avec ce code</button><button class="btn" onclick="fillManual()">＋ Saisie manuelle</button></div></div><div class="card" style="margin-top:16px"><div class="sectionTitle">2. Vérifier la fiche produit</div><p class="mini">Les données proposées sont modifiables. Aucun stock n'est modifié avant votre confirmation.</p><div aria-live="polite" class="notice" id="lookupResult">Aucun produit identifié pour le moment.</div><div class="productFields"><div><label class="mini" for="prodName">Nom du produit *</label><input class="field" id="prodName" placeholder="Nom ou désignation"/></div><div><label class="mini" for="prodBrand">Marque</label><input class="field" id="prodBrand" placeholder="Facultatif"/></div><div><label class="mini" for="prodCategory">Catégorie</label><input class="field" id="prodCategory" placeholder="Ex. Épicerie"/></div><div><label class="mini" for="prodQty">Quantité initiale *</label><input class="field" id="prodQty" min="0" step="1" type="number" value="1"/></div><div><label class="mini" for="prodMin">Seuil d'alerte *</label><input class="field" id="prodMin" min="0" step="1" type="number" value="5"/></div><div><label class="mini" for="prodTarget">Stock cible *</label><input class="field" id="prodTarget" min="0" step="1" type="number" value="20"/></div><div><label class="mini" for="prodPrice">Coût unitaire estimé HT (€) *</label><input class="field" id="prodPrice" min="0" step="0.01" type="number" value="0"/></div></div><div class="actions"><button class="btn main" onclick="confirmProduct()">✓ Confirmer et enregistrer</button><button class="btn" onclick="clearProduct()">Effacer la fiche</button></div><p class="mini">Une référence déjà présente ne sera pas ajoutée en double : sa quantité pourra être augmentée après confirmation.</p></div><div class="card" style="margin-top:16px"><div class="sectionTitle">3. Continuer vers les commandes</div><p>Une fois le produit enregistré, il apparaît dans « Mes stocks » et dans l'analyse des commandes.</p><button class="btn main" onclick="go('orders')">✧ Ouvrir Commandes IA</button></div></section><section class="view" id="help"><div class="eyebrow">Aide interactive</div><h1>Manuel intelligent ✦</h1><p>Décrivez ce que vous voulez faire. L'aide vous guide étape par étape, sans transmettre vos données.</p><div class="card assistant"><label for="helpQuery">Votre question</label><input class="field" id="helpQuery" placeholder="Ex. Comment scanner un produit ?"/><div class="actions"><button class="btn main" onclick="helpSearch()">✦ Trouver la procédure</button></div><div aria-live="polite" class="copilotreply" id="helpAnswer">Choisissez un sujet ci-dessous ou posez une question.</div><div class="actions"><button class="btn" onclick="helpTopic('scan')">Scanner</button><button class="btn" onclick="helpTopic('stock')">Stocks</button><button class="btn" onclick="helpTopic('order')">Commandes</button><button class="btn" onclick="helpTopic('receive')">Réception</button><button class="btn" onclick="helpTopic('privacy')">Sécurité</button></div></div><div class="card" style="margin-top:16px"><h2>Présentation clients</h2><p>Vidéo de présentation : les fonctions IA avancées sont encore en développement. Ne présentez pas ce prototype comme un logiciel de production sécurisé.</p><p><a href="StockPilot-AI-Presentation-Clients.mp4" style="color:#73e9fb">Ouvrir la vidéo explicative (fichier séparé)</a></p></div></section></main></div><div class="toast" id="toast" role="status"></div><script>function go(id){document.body.classList.remove("spMenuOpen");const menu=document.getElementById("spMobileMenu");if(menu){menu.setAttribute("aria-expanded","false");menu.textContent="☰"}document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===id));scrollTo({top:0,behavior:'smooth'})}document.querySelectorAll('.nav').forEach(x=>x.addEventListener('click',()=>go(x.dataset.view)));document.getElementById("spMobileMenu")?.addEventListener("click",()=>{const open=document.body.classList.toggle("spMenuOpen");const b=document.getElementById("spMobileMenu");b.setAttribute("aria-expanded",String(open));b.textContent=open?"✕":"☰"});document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.body.classList.remove("spMenuOpen");document.getElementById("spMobileMenu")?.setAttribute("aria-expanded","false")}});function notify(s){let t=document.getElementById('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500)}function reply(s){document.getElementById('answer').innerHTML='<span class="dot cyan"></span><div><strong>Simulation de réponse</strong><small>'+s+'</small></div>'}
+const DEFAULT_ITEMS=[{id:'GP-001',name:'Gants de protection',stock:4,min:10,target:30,price:7.5},{id:'CE-024',name:"Cartons d'expédition",stock:8,min:20,target:60,price:1.8},{id:'RA-019',name:'Ruban adhésif',stock:120,min:25,target:80,price:2.2},{id:'MAS-008',name:'Masques FFP2',stock:12,min:20,target:50,price:1.15},{id:'FIL-017',name:'Filtres techniques',stock:6,min:8,target:20,price:12.9}];
+const storeKey='stockpilot-futuriste-orders-v2';let orderState;
+function loadOrderState(){try{const saved=JSON.parse(localStorage.getItem(storeKey)||localStorage.getItem('stockpilot-futuriste-orders-v1'));if(saved&&Array.isArray(saved.items)&&Array.isArray(saved.history)){saved.draft=Array.isArray(saved.draft)?saved.draft:[];return saved}}catch(e){}return {items:structuredClone(DEFAULT_ITEMS),history:[],draft:[]}}
+function saveOrderState(){try{localStorage.setItem(storeKey,JSON.stringify(orderState))}catch(e){document.getElementById('draftNotice').textContent='Stockage local indisponible : exportez votre brouillon avant de fermer.'}}
+function euros(v){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(v)}
+function safe(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderInventory(){renderStockList();document.getElementById('inventoryEditor').innerHTML=orderState.items.map((p,i)=>`<div class="orderrow"><div><strong>${safe(p.name)}</strong><small>${safe(p.id)} · ${euros(p.price)}/unité · seuil ${p.min}</small></div><div><label class="mini" for="stock${i}">En stock</label><input class="field" id="stock${i}" type="number" min="0" step="1" value="${p.stock}" onchange="editItem(${i},'stock',this.value)"></div><div><label class="mini" for="target${i}">Objectif</label><input class="field" id="target${i}" type="number" min="0" step="1" value="${p.target}" onchange="editItem(${i},'target',this.value)"></div></div>`).join('')}
+function editItem(i,k,v){const n=Number(v);if(!Number.isInteger(n)||n<0||n>1000000){notify('Saisissez un entier positif valide.');renderInventory();return}orderState.items[i][k]=n;saveOrderState();renderSummary()}
+function generateDraft(){orderState.draft=orderState.items.filter(p=>p.stock<p.min&&p.target>p.stock).map(p=>({id:p.id,name:p.name,qty:p.target-p.stock,price:p.price,selected:true,stock:p.stock,min:p.min,target:p.target}));saveOrderState();renderDraft();renderSummary();document.getElementById('draftNotice').textContent=orderState.draft.length?'Suggestions expliquées ligne par ligne. Modifiez une quantité pour recalculer le coût et afficher les avertissements.':'Aucun produit sous son seuil minimal.'}
+function explainDraft(p){
+ if(p.forecastReason){
+ const msg=[p.forecastReason,`Quantité actuelle proposée : ${p.qty} unité(s). Budget estimé : ${euros(p.qty*p.price)}.`,`Prévision simplifiée à partir de ventes saisies manuellement. Vérifiez les hypothèses avant validation.`];
+ return msg.map(t=>safe(t)).join('<br>');
+ }
+ const gap=Math.max(0,p.min-p.stock),planned=p.stock+p.qty;
+ const normal=Math.max(0,p.target-p.stock),delta=p.qty-normal;
+ const parts=[`Le stock actuel (${p.stock}) est inférieur au seuil d’alerte (${p.min}) de ${gap} unité(s).`,
+ `La quantité calculée est ${p.target} (objectif) − ${p.stock} (stock) = ${normal} unité(s).`,
+ `Avec ${p.qty} unité(s), le stock atteindrait ${planned}. Coût estimé : ${euros(p.qty*p.price)} (${p.qty} × ${euros(p.price)}).`];
+ if(delta!==0)parts.push(`Vous avez ${delta>0?'augmenté':'réduit'} la proposition initiale de ${Math.abs(delta)} unité(s).`);
+ if(planned<p.min)parts.push('Attention : la quantité choisie ne permet pas d’atteindre le seuil minimal.');
+ if(planned>p.target)parts.push('Attention : la quantité choisie dépasse l’objectif configuré.');
+ return parts.map(t=>safe(t)).join('<br>');
+}
+function renderDraft(){let d=orderState.draft;document.getElementById('draftRows').innerHTML=d.length?d.map((p,i)=>`<div class="orderrow"><div class="selectcol"><label class="checkline"><input type="checkbox" ${p.selected?'checked':''} onchange="editDraft(${i},'selected',this.checked)"><span><strong>${safe(p.name)}</strong><small>Stock ${p.stock} · Seuil ${p.min} · Objectif ${p.target}</small></span></label></div><div><label class="mini" for="qty${i}">Quantité</label><input class="field" id="qty${i}" type="number" min="1" step="1" value="${p.qty}" onchange="editDraft(${i},'qty',this.value)"></div><div><span class="mini muted">Estimation</span><div style="margin-top:9px;font-weight:750">${euros(p.qty*p.price)}</div></div><details class="reason" style="grid-column:1/-1;border:1px solid #a08bff;border-radius:14px;padding:14px;background:#282044;margin:12px 0;color:#f5f2ff"><summary style="cursor:pointer;font-weight:800;color:#d7c9ff;font-size:16px;padding:5px 0">✦ Pourquoi cette quantité ? <span style="font-size:13px;color:#b4a8db">(appuyer pour voir)</span></summary><div style="margin-top:15px;line-height:1.8">${explainDraft(p)}</div><div class="reason-note" style="margin-top:12px">Calcul transparent à partir des seuils configurés. Aucune prédiction IA.</div></details></div>`).join(''):'<p>Aucune proposition active. Cliquez sur « Analyser et proposer ».</p>';document.getElementById('approveBtn').disabled=!d.some(p=>p.selected&&p.qty>0)}
+function editDraft(i,k,v){if(k==='qty'){const n=Number(v);if(!Number.isInteger(n)||n<1||n>1000000){notify('Quantité invalide.');renderDraft();return}v=n}orderState.draft[i][k]=v;saveOrderState();renderDraft();renderSummary()}
+function renderSummary(){const d=orderState.draft.filter(p=>p.selected&&p.qty>0);const low=orderState.items.filter(p=>p.stock<p.min);document.getElementById('orderSummary').innerHTML=`<div class="summary"><span>Références sous le seuil</span><b>${low.length}</b></div><div class="summary"><span>Lignes sélectionnées</span><b>${d.length}</b></div><div class="summary"><span>Unités proposées</span><b>${d.reduce((a,p)=>a+p.qty,0)}</b></div><div class="summary"><span>Budget estimé HT*</span><b>${euros(d.reduce((a,p)=>a+p.qty*p.price,0))}</b></div><p class="mini muted">*Prix d'exemple saisis, sans frais de livraison ni TVA. Aucune prédiction de ventes.</p>`}
+function cancelDraft(){orderState.draft=[];saveOrderState();renderDraft();renderSummary();document.getElementById('draftNotice').textContent='Proposition annulée.'}
+function approveDraft(){const selected=orderState.draft.filter(p=>p.selected&&p.qty>0);if(!selected.length)return;const amount=selected.reduce((a,p)=>a+p.qty*p.price,0);const msg=`Valider un brouillon de ${selected.length} ligne(s) pour ${euros(amount)} estimés ? Aucun achat ni envoi fournisseur ne sera effectué.`;if(!window.confirm(msg))return;const supplier=(document.getElementById('orderSupplier')?.value||'').trim();const order={id:'CMD-'+Date.now(),date:new Date().toISOString(),supplier,status:'validée',lines:selected.map(p=>({id:p.id,name:p.name,qty:p.qty,price:p.price})),total:amount};orderState.history.unshift(order);orderState.draft=[];saveOrderState();renderDraft();renderSummary();renderHistory();document.getElementById('draftNotice').textContent='Brouillon validé et enregistré localement. Le stock n’a pas été modifié.';notify('Brouillon validé, aucun fournisseur contacté.')}
+function csvCell(x){return '"'+String(x).replace(/"/g,'""')+'"'}
+function exportOrder(i){const o=orderState.history[i];if(!o)return;const lines=[['Commande','Date','Référence','Produit','Quantité','Prix unitaire HT','Total HT'].map(csvCell).join(';'),...o.lines.map(p=>[o.id,o.date,p.id,p.name,p.qty,p.price.toFixed(2),(p.qty*p.price).toFixed(2)].map(csvCell).join(';'))];const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=o.id+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+function receiveOrder(i){const o=orderState.history[i];if(!o||o.status==='reçue')return;const missing=o.lines.filter(l=>!orderState.items.some(p=>p.id===l.id));if(missing.length){notify('Références introuvables : réception impossible.');return}if(!confirm('Confirmer la réception complète de '+o.id+' ? Les quantités seront ajoutées aux stocks. Cette action ne peut pas être annulée automatiquement.'))return;for(const l of o.lines){const p=orderState.items.find(p=>p.id===l.id);p.stock+=l.qty}o.status='reçue';o.receivedAt=new Date().toISOString();saveOrderState();renderInventory();renderHistory();renderSummary();renderStockList();notify('Réception enregistrée : stocks mis à jour.')}
+function exportOrderText(i){
+ const o=orderState.history[i];if(!o)return;
+ const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=n=>Number(n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
+ const rows=o.lines.map(l=>`<tr><td>${escapeHtml(l.id)}</td><td>${escapeHtml(l.name)}</td><td class="num">${Number(l.qty)}</td><td class="num">${money(l.price)}</td><td class="num">${money(l.qty*l.price)}</td></tr>`).join('');
+ const doc=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bon de commande ${escapeHtml(o.id)}</title><style>
+ @page{size:A4;margin:15mm}*{box-sizing:border-box}body{margin:0;background:#e8edf3;font:15px Arial,sans-serif;color:#172436;line-height:1.5}.sheet{width:210mm;min-height:297mm;max-width:100%;margin:20px auto;padding:18mm;background:#fff;box-shadow:0 5px 28px #0002}.top{display:flex;justify-content:space-between;align-items:start;gap:15px;border-bottom:3px solid #3450a8;padding-bottom:22px}.brand{font-size:24px;font-weight:800;color:#18243a}.brand span{color:#00a9a9}.title{font-size:25px;font-weight:800;text-align:right}.sub{color:#617187;font-size:13px}.info{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0}.card{padding:15px;border:1px solid #d7deeb;border-radius:8px}.card strong{display:block;margin-bottom:8px}table{border-collapse:collapse;width:100%;margin:20px 0}th{background:#172d49;color:#fff;font-size:12px;text-align:left}td,th{padding:11px 9px;border-bottom:1px solid #dce3ed;overflow-wrap:anywhere}.num{text-align:right;white-space:nowrap}.total{text-align:right;font-size:22px;font-weight:800;margin:26px 0}.notice{padding:14px;background:#edf5fa;border-left:4px solid #00a9a9;font-size:13px}.actions{max-width:210mm;margin:20px auto;display:flex;gap:10px}.actions button{padding:13px 18px;border:0;border-radius:8px;background:#1a3560;color:#fff;font-weight:700;font-size:15px;cursor:pointer}@media(max-width:700px){.sheet{margin:0;padding:20px 12px;min-height:0}.top{flex-direction:column}.title{text-align:left}.info{grid-template-columns:1fr}table{font-size:12px}td,th{padding:7px 4px}.actions{padding:0 12px}}@media print{body{background:white}.sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;box-shadow:none}.actions{display:none}thead{display:table-header-group}tr{break-inside:avoid}}
+ </style></head><body><div class="actions"><button onclick="window.print()">Imprimer / Enregistrer en PDF</button></div><main class="sheet"><div class="top"><div><div class="brand">STOCK<span>PILOT</span></div><div class="sub">Document préparatoire de gestion</div></div><div><div class="title">BON DE COMMANDE</div><div class="sub">${escapeHtml(o.id)}</div></div></div><section class="info"><div class="card"><strong>Fournisseur</strong>${escapeHtml(o.supplier||'Non renseigné — à compléter')}</div><div class="card"><strong>Informations</strong>Date : ${escapeHtml(new Date(o.date).toLocaleString('fr-FR'))}<br>Statut : ${o.status==='reçue'?'Réceptionnée':'Validée — non envoyée'}</div></section><table><thead><tr><th>Référence</th><th>Désignation</th><th class="num">Qté</th><th class="num">Prix HT</th><th class="num">Total HT</th></tr></thead><tbody>${rows}</tbody></table><div class="total">TOTAL HT ESTIMÉ : ${money(o.total)}</div><div class="notice">Document préparatoire. Aucune commande n’a été envoyée automatiquement. Montants indicatifs hors taxes, frais de livraison non inclus. Vérifiez les coordonnées et les prix avant toute utilisation commerciale.</div></main></body></html>`;
+ const url=URL.createObjectURL(new Blob([doc],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=o.id+'-bon-commande-A4.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+ notify('Bon de commande A4 téléchargé. Ouvrez-le dans Chrome puis utilisez Imprimer / Enregistrer en PDF.');
+}
+function renderHistory(){document.getElementById('orderHistory').innerHTML=orderState.history.length?orderState.history.map((o,i)=>`<div class="historyitem"><strong>${safe(o.id)}</strong> <span class="status">${o.status==='reçue'?'Réceptionnée':'Validée · non envoyée'}</span><small>${new Date(o.date).toLocaleString('fr-FR')} · ${o.lines.length} ligne(s) · ${euros(o.total)}</small><small>Fournisseur : ${safe(o.supplier||'Non renseigné')}</small><div class="actions"><button class="btn" onclick="exportOrder(${i})">↓ CSV</button><button class="btn" onclick="exportOrderText(${i})">↓ Bon A4 / PDF</button>${o.status==='reçue'?'':`<button class="btn main" onclick="receiveOrder(${i})">✓ Confirmer réception</button>`}</div></div>`).join(''):'<p>Aucune commande validée pour le moment.</p>'}
+function resetInventory(){if(!confirm('Réinitialiser uniquement les quantités d’exemple ? Les brouillons validés seront conservés.'))return;orderState.items=structuredClone(DEFAULT_ITEMS);orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();notify('Inventaire de démonstration réinitialisé.')}
+
+function renderStockList(){const box=document.getElementById('stockList');if(!box||!orderState)return;box.innerHTML=orderState.items.map(p=>`<div class="item"><div><strong>${safe(p.name)}</strong><small>${safe(p.brand||p.category||'Produit')} · ${safe(p.id)}</small></div><span class="${p.stock<p.min?'warn':'count'}">${p.stock} en stock</span></div>`).join('')}
+function setScanStatus(message){document.getElementById('scanStatus').textContent=message}
+function fillManual(){document.getElementById('lookupResult').textContent='Saisie manuelle : vérifiez la référence, le nom et les quantités avant confirmation.';document.getElementById('prodName').focus()}
+function clearProduct(){['scanCode','prodName','prodBrand','prodCategory'].forEach(id=>document.getElementById(id).value='');document.getElementById('prodQty').value=1;document.getElementById('prodMin').value=5;document.getElementById('prodTarget').value=20;document.getElementById('prodPrice').value=0;document.getElementById('lookupResult').textContent='Fiche effacée.'}
+async function decodePhoto(file){let errors=[];if('BarcodeDetector' in window){try{let formats=await BarcodeDetector.getSupportedFormats();const wanted=['ean_13','ean_8','upc_a','upc_e','code_128','qr_code'].filter(x=>formats.includes(x));if(wanted.length){const detector=new BarcodeDetector({formats:wanted});const bitmap=await createImageBitmap(file);try{const found=await detector.detect(bitmap);if(found.length)return found[0].rawValue}finally{bitmap.close()}}}catch(e){errors.push('Lecteur natif : '+e.message)}}if(typeof Html5Qrcode!=='undefined'){try{const reader=new Html5Qrcode('scanReader',{verbose:false});try{return await reader.scanFile(file,true)}finally{try{reader.clear()}catch(e){}}}catch(e){errors.push('Lecteur photo : '+e.message)}}throw new Error('Code illisible ou module de lecture indisponible. Essayez une photo nette et bien éclairée, ou saisissez les chiffres. '+errors.join(' '))}
+function openProductCamera(){
+ const input=document.getElementById('scanPhoto');
+ if(!input){setScanStatus("Appareil photo indisponible : champ photo introuvable.");return}
+ setScanStatus("Ouverture de l’appareil photo… Autorisez l’accès si votre téléphone le demande.");
+ input.click();
+}
+async function handleScan(file){if(!file)return;document.getElementById('scanCode').value='';['prodName','prodBrand','prodCategory'].forEach(id=>document.getElementById(id).value='');document.getElementById('lookupResult').textContent='Nouvelle photo : identification en attente.';setScanStatus('Lecture de la photo en cours…');try{const code=String(await decodePhoto(file)).trim();document.getElementById('scanCode').value=code;setScanStatus('Code détecté : '+code);await lookupProduct()}catch(e){setScanStatus(e.message)}finally{document.getElementById('scanPhoto').value='';document.getElementById('scanGallery').value=''}}
+['scanPhoto','scanGallery'].forEach(id=>document.getElementById(id).addEventListener('change',e=>handleScan(e.target.files?.[0])));
+async function lookupProduct(){
+ const code=document.getElementById('scanCode').value.trim();
+ const out=document.getElementById('lookupResult');
+ const btn=document.getElementById('identifyProductBtn');
+ const name=document.getElementById('prodName');
+ const brand=document.getElementById('prodBrand');
+ const cat=document.getElementById('prodCategory');
+ if(!code){out.textContent='Saisissez un code-barres ou utilisez « Prendre une photo ».';return}
+ if(btn.disabled)return;
+ btn.disabled=true;btn.textContent='⌛ Recherche en cours…';
+ // Ne jamais afficher l'ancienne fiche comme résultat d'une nouvelle recherche.
+ name.value='';brand.value='';cat.value='';
+ const existing=orderState.items.find(p=>p.id===code);
+ try{
+  if(existing){name.value=existing.name;brand.value=existing.brand||'';cat.value=existing.category||'';document.getElementById('prodMin').value=existing.min;document.getElementById('prodTarget').value=existing.target;document.getElementById('prodPrice').value=existing.price;out.textContent='Produit présent dans votre inventaire. Vérifiez les données avant de confirmer.';return}
+  if(!navigator.onLine){out.textContent='Connexion Internet absente. La recherche publique nécessite Internet. Utilisez la saisie manuelle.';return}
+  if(!/^\d{8}$|^\d{12,14}$/.test(code)){out.textContent='Ce code ne correspond pas au format EAN-8, UPC-12, EAN-13 ou GTIN-14. Les références internes peuvent être saisies manuellement.';return}
+  out.textContent='Recherche dans les catalogues publics…';
+  const bases=['https://world.openfoodfacts.org/api/v2/product/','https://world.openbeautyfacts.org/api/v2/product/','https://world.openproductsfacts.org/api/v2/product/'];
+  let found=null;let networkFailure=false;
+  for(const base of bases){
+   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),4500);
+   try{
+    const res=await fetch(base+encodeURIComponent(code)+'.json?fields=code,product_name,product_name_fr,brands,categories',{signal:controller.signal,cache:'no-store'});
+    if(!res.ok){networkFailure=true;continue}
+    const result=await res.json();
+    if(result.status===1&&result.product&&(result.product.product_name_fr||result.product.product_name)){found=result.product;break}
+   }catch(e){networkFailure=true}finally{clearTimeout(timeout)}
+  }
+  if(found){name.value=found.product_name_fr||found.product_name||'';brand.value=found.brands||'';cat.value=(found.categories||'').split(',')[0].trim();out.textContent='Produit trouvé dans un catalogue public. Vérifiez la fiche avant confirmation.'}
+  else out.textContent=networkFailure?'Produit non identifié. Un ou plusieurs catalogues sont inaccessibles (connexion, restrictions du navigateur ou délai). Complétez la fiche manuellement.':'Aucun produit trouvé dans les catalogues interrogés. Complétez la fiche manuellement.';
+ }catch(error){out.textContent='Recherche impossible pour le moment. Vérifiez votre connexion ou utilisez la saisie manuelle.'}finally{btn.disabled=false;btn.textContent='⌕ Rechercher le produit avec ce code'}
+}
+
+function confirmProduct(){const get=id=>document.getElementById(id).value.trim();const name=get('prodName'),code=get('scanCode');const qty=Number(get('prodQty')),min=Number(get('prodMin')),target=Number(get('prodTarget')),price=Number(get('prodPrice'));if(!name){notify('Indiquez le nom du produit.');return}if(![qty,min,target].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000){notify('Vérifiez les quantités, les seuils et le prix.');return}const id=code||'INT-'+Date.now();const existing=orderState.items.find(p=>p.id===id);const prompt=existing?`Ajouter ${qty} unité(s) à « ${existing.name} » ? Le stock passera de ${existing.stock} à ${existing.stock+qty}.`:`Enregistrer « ${name} » (${qty} unité(s)) dans votre stock ?`;if(!confirm(prompt))return;if(existing){existing.stock+=qty;existing.name=name;existing.brand=get('prodBrand');existing.category=get('prodCategory');existing.min=min;existing.target=target;existing.price=price}else{orderState.items.push({id,name,brand:get('prodBrand'),category:get('prodCategory'),stock:qty,min,target,price})}orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();document.getElementById('lookupResult').textContent='Produit enregistré dans l’inventaire local. Il est maintenant pris en compte dans les commandes.';notify('Produit enregistré !');go('stock')}
+
+
+function setCopilotExample(value){document.getElementById('copilotQuestion').value=value;askCopilot()}
+function copilotAnswer(html){document.getElementById('copilotReply').innerHTML=html}
+function askCopilot(){
+ const raw=document.getElementById('copilotQuestion').value.trim();
+ if(!raw){copilotAnswer('Écrivez une demande, par exemple : « Prépare mes commandes avec un budget maximum de 200 € ».');return}
+ const q=raw.toLocaleLowerCase('fr-FR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const low=orderState.items.filter(p=>p.stock<p.min).sort((a,b)=>((b.min-b.stock)/Math.max(1,b.min))-((a.min-a.stock)/Math.max(1,a.min)));
+ const m=q.match(/(?:budget(?:\s+(?:maximum|max|de))?|maximum|max|moins de|jusqu.a|plafond(?:\s+de)?)\s*[:=]?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)?/i)||q.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?)/i);
+ const budget=m?Number(m[1].replace(',','.')):null;
+ const isOrder=/command|reapprovision|acheter|achat|approvision|prepar/.test(q);
+ const isLow=/rupture|seuil|faible|alerte|manqu|risque/.test(q);
+ if(/semaine|jours|mois|prevision|predict/.test(q)&&!isOrder&&!isLow){copilotAnswer('Je ne peux pas encore prévoir les ventes : aucun historique daté des ventes ni délai fournisseur n’est disponible. Je peux analyser les seuils actuels ou préparer une commande avec un budget.');return}
+ if(!isOrder&&!isLow){copilotAnswer('Je peux actuellement : analyser les produits sous leur seuil, préparer une proposition de réapprovisionnement et respecter un budget en euros. Je ne suis pas encore une IA conversationnelle générale.');return}
+ if(!isOrder){copilotAnswer('<strong>'+low.length+' référence(s) sous leur seuil :</strong>\n'+(low.length?low.map(p=>'• '+safe(p.name)+' : '+p.stock+' en stock, seuil '+p.min+' (manque '+(p.min-p.stock)+')').join('\n'):'Aucune référence sous son seuil.')+'\n\nCes chiffres proviennent de votre inventaire local.');return}
+ if(orderState.draft.length&&!window.confirm('Une proposition de commande existe déjà. La remplacer par la nouvelle proposition du Copilote ?'))return;
+ if(budget!==null&&(!Number.isFinite(budget)||budget<=0)){copilotAnswer('Indiquez un budget strictement positif.');return}
+ // Priorité aux plus grands écarts relatifs sous le seuil. Les prix nuls sont exclus du calcul budgétaire.
+ let remaining=budget===null?Infinity:Math.round(budget*100);const lines=[];const excluded=[];
+ for(const p of low){const wanted=Math.max(0,p.target-p.stock);if(wanted<=0)continue;
+  const cents=Math.round(p.price*100);
+  if(budget!==null&&cents<=0){excluded.push(p.name+' : prix non renseigné');continue}
+  const qty=budget===null?wanted:Math.min(wanted,Math.floor(remaining/cents));
+  if(qty>0){lines.push({id:p.id,name:p.name,qty,price:p.price,selected:true,stock:p.stock,min:p.min,target:p.target});if(budget!==null)remaining-=qty*cents}
+  else excluded.push(p.name+' : budget insuffisant');
+ }
+ orderState.draft=lines;saveOrderState();renderDraft();renderSummary();
+ const amount=lines.reduce((v,p)=>v+p.qty*p.price,0),units=lines.reduce((v,p)=>v+p.qty,0);
+ let message='<strong>Proposition préparée : '+lines.length+' référence(s), '+units+' unité(s), '+euros(amount)+' HT estimés.</strong>';
+ if(budget!==null)message+='\nBudget maximum : '+euros(budget)+'. Reste estimé : '+euros(Math.max(0,budget-amount))+'.';
+ message+='\nMéthode : priorité aux références les plus en dessous de leur seuil (écart relatif), puis quantité limitée au budget. Ce n’est pas une prévision des ventes.';
+ if(excluded.length)message+='\nNon inclus : '+safe(excluded.join(' ; '))+'.';
+ if(!lines.length)message+='\nAucune ligne ne peut être proposée avec ces paramètres.';
+ message+='\n\nVérifiez les quantités dans « Commandes IA ». Aucune commande n’est envoyée et aucun stock n’est modifié.';
+ copilotAnswer(message);document.getElementById('draftNotice').textContent='Proposition préparée par le Copilote local : vérifiez et validez si elle vous convient.';
+ const nav=document.createElement('button');nav.className='btn main';nav.textContent='→ Voir et modifier la proposition';nav.onclick=()=>{go('orders');document.getElementById('draftRows').scrollIntoView({behavior:'smooth',block:'start'})};
+ document.getElementById('copilotReply').appendChild(document.createElement('div')).appendChild(nav);
+}
+
+orderState=loadOrderState();renderInventory();renderDraft();renderSummary();renderHistory();
+</script>
+<style>
+.forecastgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.forecastrow{border:1px solid #6e579c66;border-radius:14px;padding:14px;margin:12px 0;background:#18192f}
+.forecastrow .field{max-width:155px;margin:4px 0}
+.forecastrow label{font-size:12px;color:#bdc2dd}
+.forecastresult{background:#211c40;border:1px solid #7859b2;border-radius:14px;padding:15px;line-height:1.7;white-space:pre-wrap;margin-top:15px}
+@media(max-width:540px){.forecastgrid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+const key='stockpilot-forecast-v46';
+function get(){try{return JSON.parse(localStorage.getItem(key))||{}}catch(e){return {}}}
+function put(v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){alert('Sauvegarde indisponible dans ce navigateur.')}}
+function dataForForecast(id){return get()[id]||{}}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function money(n){return n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}
+window.renderForecast=function(){
+const root=document.getElementById('forecastProducts');if(!root||typeof orderState==='undefined'||!orderState)return;
+const data=get();
+root.innerHTML=orderState.items.map(p=>{let x=data[p.id]||{};
+return `<div class="forecastrow"><strong>${esc(p.name)}</strong><div class="notice">Stock actuel : ${p.stock} · Seuil : ${p.min} · Objectif : ${p.target}</div><div class="forecastgrid"><div><label>Unités vendues sur 30 jours<input class="field" type="number" min="0" max="1000000" step="1" value="${Number.isSafeInteger(x.sales)?x.sales:''}" data-forecast-id="${esc(p.id)}" data-forecast-field="sales" placeholder="À renseigner"></label></div><div><label>Délai fournisseur (jours)<input class="field" type="number" min="0" max="365" step="1" value="${Number.isSafeInteger(x.lead)?x.lead:''}" data-forecast-id="${esc(p.id)}" data-forecast-field="lead" placeholder="À renseigner"></label></div></div></div>`}).join('');
+};
+window.saveForecast=function(){
+const data=get();let invalid=false;
+document.querySelectorAll('[data-forecast-id]').forEach(el=>{const id=el.dataset.forecastId,field=el.dataset.forecastField,raw=el.value.trim();
+if(raw!==''&&(!/^\d+$/.test(raw)||Number(raw)>1000000||(field==='lead'&&Number(raw)>365))){invalid=true;return}
+if(!data[id])data[id]={};
+if(raw==='')delete data[id][field];else data[id][field]=Number(raw);
+});if(invalid){alert('Utilisez des nombres entiers positifs (délai maximum : 365 jours).');return}
+put(data);window.analyzeForecast();};
+window.analyzeForecast=function(days){
+const horizon=days||Number(document.getElementById('forecastHorizon').value);
+if(!Number.isInteger(horizon)||horizon<1||horizon>365){alert('Choisissez un horizon entre 1 et 365 jours.');return}
+const data=get();let complete=[],missing=[];
+for(const p of orderState.items){
+const x=data[p.id]||{};
+if(!Number.isSafeInteger(x.sales)||!Number.isSafeInteger(x.lead)){missing.push(p.name);continue}
+const rate=x.sales/30;
+const projected=rate*(horizon+x.lead);
+const target=Math.max(p.min,Math.ceil(projected));
+const qty=Math.max(0,target-p.stock);
+const coverage=rate>0?(p.stock/rate).toFixed(1)+' jours':'pas de vente renseignée';
+complete.push({p,rate,qty,coverage,projected,target});
+}
+complete.sort((a,b)=>(a.p.stock/Math.max(a.rate,.001))-(b.p.stock/Math.max(b.rate,.001)));
+const lines=complete.map(x=>`${x.p.name} : ${x.qty} unité(s) suggérée(s) · couverture actuelle ${x.coverage} · délai ${data[x.p.id].lead} j · coût estimé ${money(x.qty*x.p.price)}`);
+const note='Estimation simple : ventes des 30 derniers jours ÷ 30 × (horizon + délai fournisseur). Hypothèse de ventes constantes, sans saisonnalité ni commandes en transit. Les données sont saisies manuellement, non issues de ventes vérifiées.';
+const result=`${complete.length} référence(s) analysée(s) pour ${horizon} jours.\n\n${lines.join('\n')||'Aucune donnée complète.'}\n\n${missing.length?'Données manquantes pour : '+missing.join(', ')+'.\n\n':''}${note}`;
+document.getElementById('forecastResult').textContent=result;
+window.lastForecast={complete,horizon};return result;
+};
+window.saveForecastInputsOnly=function(){const data=get();document.querySelectorAll('[data-forecast-id]').forEach(el=>{const id=el.dataset.forecastId,field=el.dataset.forecastField,v=el.value.trim();if(!data[id])data[id]={};if(/^\d+$/.test(v)&&Number(v)<=1000000&&(field!=='lead'||Number(v)<=365))data[id][field]=Number(v);else delete data[id][field]});put(data)};
+window.prepareForecast=function(){
+window.saveForecastInputsOnly();window.analyzeForecast();
+const f=window.lastForecast;if(!f||!f.complete.length)return;
+const items=f.complete.filter(x=>x.qty>0);
+if(!items.length){alert('Aucune commande nécessaire selon cette estimation.');return}
+if(orderState.draft.length&&!confirm('Remplacer le brouillon de commande actuel ?'))return;
+orderState.draft=items.map(x=>({id:x.p.id,name:x.p.name,qty:x.qty,price:x.p.price,selected:true,stock:x.p.stock,min:x.p.min,target:x.target,forecastReason:`Prévision sur ${f.horizon} jours avec délai fournisseur de ${dataForForecast(x.p.id).lead} jours ; couverture actuelle ${x.coverage}. Objectif calculé : ${x.target} unités.`}));
+saveOrderState();renderDraft();renderSummary();
+document.getElementById('draftNotice').textContent='Brouillon issu des ventes saisies manuellement : contrôlez les hypothèses et quantités avant validation.';
+go('orders');document.getElementById('draftRows').scrollIntoView({block:'start',behavior:'smooth'});
+};
+const ready=()=>{
+const assistant=document.getElementById('assistant');
+if(!assistant)return;
+const section=document.createElement('div');section.className='card assistant';section.style.marginTop='18px';
+section.innerHTML=`<div class="eyebrow">Copilote · analyse des ventes</div><h2>Anticiper les ruptures</h2><p>Indiquez les ventes des 30 derniers jours et le délai fournisseur de chaque produit. Ces chiffres sont des hypothèses de test, pas des données automatiquement collectées.</p><div id="forecastProducts"></div><label for="forecastHorizon">Prévoir les besoins sur combien de jours ?</label><input id="forecastHorizon" class="field" type="number" value="14" min="1" max="365" style="max-width:150px"><div class="actions"><button class="btn main" onclick="saveForecast()">✦ Analyser les besoins</button><button class="btn" onclick="prepareForecast()">→ Préparer le brouillon</button></div><div id="forecastResult" class="forecastresult" aria-live="polite">Complétez les ventes et délais, puis lancez l'analyse.</div>`;
+assistant.appendChild(section);renderForecast();
+const oldAsk=window.askCopilot;
+window.askCopilot=function(){
+const raw=document.getElementById('copilotQuestion').value;
+const q=raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+if(/prevoi|prevision|ventes|historique|delai|prochaines?\s+\d+\s+jours/.test(q)){
+let days=Number((q.match(/(\d+)\s*jours?/)||[])[1])||14;
+document.getElementById('forecastHorizon').value=Math.min(days,365);
+const msg=analyzeForecast();
+document.getElementById('copilotReply').textContent=msg+'\n\nPour modifier les hypothèses, utilisez le tableau « Anticiper les ruptures » ci-dessous.';
+return;
+}
+return oldAsk();
+};
+const oldGo=window.go;
+window.go=function(id){oldGo(id);if(id==='assistant')renderForecast()};
+};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();
+</script>
+<style>
+.demoFlag{border:1px solid #a88bff;background:#241c41;border-radius:14px;padding:14px 17px;margin:14px 0;color:#e7ddff;line-height:1.5}
+#clientCheck{display:grid;gap:12px;margin-top:16px}
+#clientCheck label{display:flex;gap:10px;align-items:start}
+#clientCheck input{accent-color:#a56aff;width:20px;height:20px}
+</style>
+<script>
+(function(){
+function liveKPIs(){
+ if(typeof orderState==='undefined'||!orderState)return;
+ const items=orderState.items||[],low=items.filter(x=>x.stock<x.min).length;
+ const fields={kpiValue:euros(items.reduce((sum,x)=>sum+x.stock*x.price,0)),kpiRefs:String(items.length),kpiLow:String(low),kpiActions:String(low)};
+ for(const [id,val] of Object.entries(fields)){const el=document.getElementById(id);if(el)el.textContent=val}
+}
+function init(){
+const dash=document.getElementById('dashboard');
+if(dash){
+const b=document.createElement('div');b.className='demoFlag';b.innerHTML='<strong>VERSION DE DÉMONSTRATION CLIENT</strong> — Données enregistrées uniquement sur cet appareil. Le compte entreprise est connecté à Supabase, mais les stocks, commandes, facturation, fournisseurs et fonctions IA restent locaux ou en démonstration. Les chiffres initiaux sont des exemples.';dash.insertBefore(b,dash.querySelector('.stats'));
+const card=document.createElement('div');card.className='card';card.style.marginTop='18px';
+card.innerHTML='<div class="sectionTitle">Essai client · contrôles de sécurité</div><p>Testez le parcours complet sans envoyer de commande réelle.</p><div id="clientCheck"><label><input type="checkbox"> Scanner ou saisir un produit et vérifier sa fiche</label><label><input type="checkbox"> Ajouter le produit après confirmation</label><label><input type="checkbox"> Analyser les seuils et expliquer une quantité</label><label><input type="checkbox"> Préparer une commande avec budget</label><label><input type="checkbox"> Vérifier le brouillon avant validation</label><label><input type="checkbox"> Tester la réception et le stock mis à jour</label></div><p class="mini">Les coches ne modifient aucune donnée.</p>';
+dash.appendChild(card);
+}
+const originalGo=window.go;
+window.go=function(id){originalGo(id);liveKPIs()};
+const originalSave=window.saveOrderState;
+window.saveOrderState=function(){originalSave();liveKPIs()};
+liveKPIs();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style>.safety-ribbon{position:sticky;top:0;z-index:999;background:#362552;border-bottom:1px solid #b18aff;color:#f3e8ff;padding:10px 16px;font-size:13px;text-align:center}.safety-ribbon strong{color:#87f3ff}.help-hint{font-size:13px;color:#c9c6e5}</style><script>
+const HELP={scan:['Scanner un produit','1. Ouvrez Scanner. 2. Prenez une photo nette du code-barres ou sélectionnez une image. 3. Après la lecture, la recherche du code est automatique. Vous pouvez aussi utiliser Rechercher ce code. 4. Vérifiez le nom, la quantité, le seuil et le prix. 5. Confirmez l’enregistrement. Si la lecture échoue, saisissez le numéro du code.'],stock:['Gérer les stocks','Ouvrez Mes stocks pour consulter les références. Dans Commandes IA, modifiez les quantités, les seuils et les objectifs. Ne saisissez pas de données clients réelles dans cette démonstration.'],order:['Préparer une commande','1. Ouvrez Assistant IA et indiquez un budget, ou allez dans Commandes IA. 2. Cliquez sur Analyser et proposer. 3. Vérifiez les explications, les quantités et les coûts. 4. Modifiez le brouillon si nécessaire. 5. Validez seulement pour créer une commande locale de démonstration : aucun fournisseur n’est contacté.'],receive:['Réceptionner une commande','Dans Commandes IA, trouvez le suivi des commandes. Après validation du brouillon, confirmez la réception uniquement pour une commande test. Le stock local sera augmenté.'],privacy:['Sécurité et confidentialité','Cette démonstration utilise le stockage local du navigateur. Elle n’a ni connexion utilisateur ni chiffrement applicatif des données au repos, ni sauvegarde serveur, ni gestion des rôles. Utilisez exclusivement des données fictives. Un autre utilisateur de ce navigateur peut potentiellement accéder aux données locales. Évitez de partager ce fichier comme produit commercial.']};
+function helpTopic(key){let x=HELP[key];document.getElementById('helpAnswer').textContent=x[0]+'\n\n'+x[1]}
+function helpSearch(){let q=(document.getElementById('helpQuery').value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');let key=/scan|photo|code.barre|identif/.test(q)?'scan':/recept|livrai/.test(q)?'receive':/command|budget|fournisseur|copilote/.test(q)?'order':/stock|quantit|inventaire|seuil/.test(q)?'stock':/secur|donnee|confiden|sauvegard|compte/.test(q)?'privacy':null;if(key)helpTopic(key);else document.getElementById('helpAnswer').textContent='Je ne trouve pas cette procédure. Essayez : scanner, stock, commande, réception ou sécurité. Cette aide est une recherche locale guidée, pas une IA générative.'}
+const STOCKPILOT_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
+function exportDemoData(){try{let obj={type:'stockpilot-demo-backup',createdAt:new Date().toISOString(),data:{}};STOCKPILOT_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)obj.data[k]=v});if(!Object.keys(obj.data).length)throw Error('Aucune donnée à exporter');let blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='stockpilot-demo-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}catch(e){alert('Export impossible : '+e.message)}}
+function initDemoSecurity(){let bar=document.createElement('div');bar.className='safety-ribbon';bar.innerHTML='<strong>MODE DÉMONSTRATION</strong> · Données fictives uniquement · Comptes Supabase actifs · stocks locaux non synchronisés';document.body.insertBefore(bar,document.body.firstChild);let el=document.createElement('div');el.className='card';el.style.marginTop='16px';el.innerHTML='<div class="sectionTitle">Sauvegarde de démonstration</div><p class="help-hint">Exportez les données locales pour conserver une copie de test. Le fichier JSON n’est pas chiffré : ne le partagez pas et n’y mettez aucune donnée confidentielle.</p><button class="btn" onclick="exportDemoData()">↓ Exporter une copie JSON</button><div class="actions"><label class="btn" for="restoreDemoFile" style="cursor:pointer">↑ Restaurer une sauvegarde JSON</label><input type="file" id="restoreDemoFile" accept="application/json,.json" style="display:none" onchange="restoreDemoData(this.files[0]);this.value=null"><button class="btn" onclick="resetDemoSafely()">↺ Réinitialiser les données de démonstration</button></div><p id="restoreStatus" class="help-hint" role="status">Une restauration vérifie les données autorisées, puis remplace les données locales après confirmation. Utilisez uniquement vos propres fichiers de démonstration.</p><div class="actions"><button class="btn" onclick="go(\'help\')">? Ouvrir le manuel intelligent</button></div>';document.getElementById('dashboard').appendChild(el)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initDemoSecurity);else initDemoSecurity();
+</script><script>
+function validProduct(p){return p&&typeof p==='object'&&!Array.isArray(p)&&typeof p.id==='string'&&p.id.length>0&&p.id.length<=100&&typeof p.name==='string'&&p.name.length>0&&p.name.length<=250&&['stock','min','target'].every(f=>Number.isSafeInteger(p[f])&&p[f]>=0&&p[f]<=1000000)&&Number.isFinite(p.price)&&p.price>=0&&p.price<=100000000&&['brand','category'].every(f=>p[f]===undefined||(typeof p[f]==='string'&&p[f].length<=250));}
+function validateRestoreKey(k,v){
+ if(!STOCKPILOT_KEYS.includes(k)||typeof v!=='string'||v.length>1000000)throw Error('Clé de sauvegarde non autorisée.');
+ const data=JSON.parse(v);
+ if(!data||typeof data!=='object'||Array.isArray(data))throw Error('Structure JSON invalide.');
+ if(k.includes('orders')){
+  if(!Array.isArray(data.items)||!Array.isArray(data.history)||data.items.length>2000||data.history.length>2000)throw Error('Inventaire ou historique invalide.');
+  if(!data.items.every(validProduct))throw Error('Fiche produit invalide.');
+  if(new Set(data.items.map(x=>x.id)).size!==data.items.length)throw Error('Références produit en double.');
+  for(const o of data.history){if(!o||typeof o!=='object'||!Array.isArray(o.lines)||o.lines.length>2000||typeof o.id!=='string'||o.id.length>120||!['reçue','validée'].includes(o.status))throw Error('Historique de commande invalide.');if(o.lines.some(x=>!x||typeof x!=='object'||!Number.isSafeInteger(x.qty)||x.qty<0||x.qty>1000000))throw Error('Quantité commandée invalide.');}
+ }
+}
+async function restoreDemoData(file){
+ const status=document.getElementById('restoreStatus');if(!file)return;
+ if(file.size>2*1024*1024){status.textContent='Fichier trop volumineux (maximum 2 Mo).';return}
+ try{
+  const raw=JSON.parse(await file.text());
+  if(raw.type!=='stockpilot-demo-backup'||!raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))throw Error('Format de sauvegarde non reconnu.');
+  const entries=Object.entries(raw.data);
+  if(!entries.length||entries.length>STOCKPILOT_KEYS.length)throw Error('Nombre de sections invalide.');
+  for(const [k,v] of entries)validateRestoreKey(k,v);
+  if(!confirm('Restaurer cette sauvegarde ? Les données StockPilot locales seront remplacées.'))return;
+  const previous=Object.fromEntries(STOCKPILOT_KEYS.map(k=>[k,localStorage.getItem(k)]));
+  try{
+   STOCKPILOT_KEYS.forEach(k=>localStorage.removeItem(k));
+   entries.forEach(([k,v])=>localStorage.setItem(k,v));
+  }catch(e){for(const [k,v] of Object.entries(previous)){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(_){}}throw Error('Stockage insuffisant. Restauration annulée ; vérifiez vos données.');}
+  status.textContent='Restauration terminée. Actualisation…';location.reload();
+ }catch(e){status.textContent='Restauration refusée : '+e.message}
+}
+function resetDemoSafely(){
+ if(!confirm('Effacer les données StockPilot locales de cette démonstration ?'))return;
+ if(!confirm('Dernière confirmation : réinitialiser les données de démonstration ?'))return;
+ STOCKPILOT_KEYS.forEach(k=>localStorage.removeItem(k));location.reload();
+}
+</script><style>.sync-panel{margin-top:16px;border:1px solid #5a65a5}.sync-meta{font-size:13px;color:#d8d4ed;line-height:1.65}.sync-state{font-weight:750;color:#89eaf3}.sync-warn{color:#ffcb86}</style>
+<script>
+/* V5.1: snapshots locaux uniquement. Aucune transmission réseau ni simulation de synchronisation cloud. */
+(function(){
+const PREFIX='stockpilot-v51-local-snapshot-';
+const INDEX='stockpilot-v51-local-index';
+const MAX=3;
+function keys(){return ['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46']}
+function snapshot(){
+ const data={};keys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v});
+ if(!Object.keys(data).length)return null;
+ return {type:'stockpilot-demo-backup',createdAt:new Date().toISOString(),data};
+}
+function list(){try{return JSON.parse(localStorage.getItem(INDEX)||'[]').filter(x=>typeof x==='string'&&localStorage.getItem(PREFIX+x))}catch(e){return []}}
+function saveSnapshot(silent=false){
+ try{const b=snapshot();if(!b){if(!silent)alert('Aucune donnée à sauvegarder.');return}
+ const old=list();const id=String(Date.now());const payload=JSON.stringify(b);localStorage.setItem(PREFIX+id,payload);if(localStorage.getItem(PREFIX+id)!==payload)throw Error('Vérification de la copie échouée');const arr=[id,...old].slice(0,MAX);try{localStorage.setItem(INDEX,JSON.stringify(arr))}catch(e){localStorage.removeItem(PREFIX+id);throw e}old.filter(x=>!arr.includes(x)).forEach(x=>localStorage.removeItem(PREFIX+x));render();if(!silent)alert('Copie locale créée et vérifiée sur cet appareil. Ce n’est PAS une sauvegarde cloud.');
+ }catch(e){if(!silent)alert('Impossible de créer une copie locale : '+e.message)}
+}
+function restoreSnapshot(id){
+ const raw=localStorage.getItem(PREFIX+id);if(!raw)return alert('Copie introuvable.');
+ if(!confirm('Restaurer cette copie locale ? Les données actuelles seront remplacées.'))return;if(!confirm('Confirmer définitivement la restauration ?'))return;
+ try{const b=JSON.parse(raw);if(b.type!=='stockpilot-demo-backup'||!b.data||typeof b.data!=='object')throw Error('Format invalide');
+ const entries=Object.entries(b.data);if(!entries.length||entries.some(([k,v])=>!keys().includes(k)||typeof v!=='string'))throw Error('Contenu invalide');
+ if(typeof validateRestoreKey!=='function')throw Error('Validateur indisponible');
+ entries.forEach(([k,v])=>validateRestoreKey(k,v));
+ const previous=Object.fromEntries(keys().map(k=>[k,localStorage.getItem(k)]));
+ try{keys().forEach(k=>localStorage.removeItem(k));entries.forEach(([k,v])=>localStorage.setItem(k,v))}catch(e){Object.entries(previous).forEach(([k,v])=>{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)});throw e}
+ location.reload();
+ }catch(e){alert('Restauration refusée : '+e.message)}
+}
+function render(){const target=document.getElementById('spSnapshots');if(!target)return;const arr=list();target.replaceChildren();if(!arr.length){target.textContent='Aucune copie locale disponible.';return}
+ arr.forEach(id=>{const row=document.createElement('div');row.className='actions';const t=document.createElement('span');t.className='sync-meta';t.textContent='Copie du '+new Date(Number(id)).toLocaleString('fr-FR');const b=document.createElement('button');b.className='btn';b.textContent='Restaurer';b.addEventListener('click',()=>restoreSnapshot(id));row.append(t,b);target.append(row)})}
+function status(){const e=document.getElementById('spNetStatus');if(e)e.textContent=navigator.onLine?'Connexion réseau détectée · cloud NON connecté':'Hors ligne · données conservées sur cet appareil'}
+function init(){const box=document.createElement('div');box.className='card sync-panel';box.innerHTML='<div class="sectionTitle">☁️ Cloud + hors ligne · Contrôles V5.2</div><p class="sync-meta">Cette version conserve les données localement et propose un diagnostic de leur structure. <strong>La synchronisation cloud n’est pas encore activée.</strong> Pour la sécurité de vos données, n’utilisez que des exemples fictifs.</p><p id="spNetStatus" class="sync-state" role="status"></p><div class="actions"><button id="spSaveSnapshot" class="btn main">Créer une copie locale</button><button id="spRefresh" class="btn">Actualiser les données</button><button id="spDiagnostic" class="btn">Diagnostic sécurité</button><button class="btn" onclick="exportDemoData()">Exporter une sauvegarde JSON</button></div><p class="sync-meta">Copies locales limitées aux 3 dernières, vérifiées à l’écriture. Elles peuvent disparaître si le stockage du navigateur est effacé ; l’export JSON est recommandé.</p><div id="spSnapshots" class="sync-meta"></div><p id="spDiagnosticResult" class="sync-meta" role="status"></p><p class="sync-meta sync-warn">À venir : connexion utilisateur, isolation des entreprises, API sécurisée, synchronisation avec gestion des conflits et sauvegardes serveur vérifiées.</p>';
+ document.getElementById('dashboard').appendChild(box);document.getElementById('spSaveSnapshot').addEventListener('click',()=>saveSnapshot(false));document.getElementById('spRefresh').addEventListener('click',()=>{if(typeof render==='function')render();if(typeof renderAll==='function')renderAll();status();document.getElementById('spDiagnosticResult').textContent='Actualisation demandée. Les données locales sont conservées.'});document.getElementById('spDiagnostic').addEventListener('click',()=>{const findings=[];let ok=0;for(const k of keys()){const v=localStorage.getItem(k);if(v===null)continue;try{if(typeof validateRestoreKey!=='function')throw Error('Validateur absent');validateRestoreKey(k,v);ok++}catch(e){findings.push(k+' : '+e.message)}}for(const id of list()){try{const b=JSON.parse(localStorage.getItem(PREFIX+id));if(b.type!=='stockpilot-demo-backup'||!b.data||typeof b.data!=='object')throw Error('Format invalide');Object.entries(b.data).forEach(([k,v])=>validateRestoreKey(k,v))}catch(e){findings.push('Copie '+id+' : '+e.message)}}document.getElementById('spDiagnosticResult').textContent=findings.length?'Anomalies détectées : '+findings.join(' | '):'Contrôle local réussi : '+ok+' section(s) vérifiée(s), '+list().length+' copie(s) examinée(s). Vérification serveur non disponible.'});render();status();window.addEventListener('online',status);window.addEventListener('offline',status);
+ // Une copie par session au maximum, si des données existent; pas d'écriture automatique en boucle.
+ if(!sessionStorage.getItem('stockpilot-v51-session-snapshot')){saveSnapshot(true);sessionStorage.setItem('stockpilot-v51-session-snapshot','1')}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style>
+#spIntegrityPanel{margin-top:16px;border:1px solid #527b72}#spIntegrityPanel .spok{color:#a5ffc7}#spIntegrityPanel .spbad{color:#ffd19e}
+</style>
+<script>
+/* V5.3: vérification indépendante et export contrôlé des données de démonstration. */
+(function(){'use strict';
+const KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
+const PREFIX='stockpilot-v51-local-snapshot-',INDEX='stockpilot-v51-local-index';
+const $=id=>document.getElementById(id);
+function checkedData(){
+ const data=Object.create(null);
+ for(const key of KEYS){const value=localStorage.getItem(key);if(value===null)continue;
+  if(typeof validateRestoreKey!=='function')throw Error('Validateur absent');
+  validateRestoreKey(key,value);data[key]=value;
+ }
+ if(!Object.keys(data).length)throw Error('Aucune donnée de démonstration enregistrée.');
+ return data;
+}
+async function digest(value){
+ if(!crypto?.subtle)throw Error('SHA-256 indisponible dans ce contexte navigateur.');
+ const bytes=new TextEncoder().encode(value), hash=await crypto.subtle.digest('SHA-256',bytes);
+ return [...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function download(content,name){const url=URL.createObjectURL(new Blob([content],{type:'application/json;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}
+async function exportVerified(){const status=$('spIntegrityResult');try{
+ const data=checkedData();const canonical=JSON.stringify(data);const checksum=await digest(canonical);
+ const payload={type:'stockpilot-demo-backup-v53',version:1,createdAt:new Date().toISOString(),algorithm:'SHA-256',checksum,data};
+ download(JSON.stringify(payload,null,2),'StockPilot-V5-3-sauvegarde-verifiee-'+new Date().toISOString().slice(0,10)+'.json');
+ status.className='spok';status.textContent='Sauvegarde exportée avec empreinte SHA-256. Non chiffrée : données fictives uniquement.';
+ }catch(e){status.className='spbad';status.textContent='Export refusé : '+e.message}}
+async function verifyFile(file){const status=$('spIntegrityResult');if(!file)return;
+ try{if(file.size>2*1024*1024)throw Error('Fichier trop volumineux (maximum 2 Mo).');
+ const raw=JSON.parse(await file.text());if(raw.type!=='stockpilot-demo-backup-v53'||raw.version!==1||raw.algorithm!=='SHA-256'||typeof raw.checksum!=='string'||!/^[a-f0-9]{64}$/.test(raw.checksum))throw Error('Format V5.3 ou empreinte invalide.');
+ if(!raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))throw Error('Structure de données invalide.');
+ const entries=Object.entries(raw.data);if(!entries.length||entries.length>KEYS.length)throw Error('Sections invalides.');
+ entries.forEach(([k,v])=>validateRestoreKey(k,v));
+ const actual=await digest(JSON.stringify(raw.data));if(actual!==raw.checksum)throw Error('Empreinte différente : fichier modifié ou endommagé.');
+ status.className='spok';status.textContent='Intégrité vérifiée : '+entries.length+' section(s) valides. Aucune restauration effectuée.';
+ }catch(e){status.className='spbad';status.textContent='Vérification refusée : '+e.message}}
+function verifyLocal(){const status=$('spIntegrityResult');try{
+ const ids=JSON.parse(localStorage.getItem(INDEX)||'[]');if(!Array.isArray(ids)||ids.length>3)throw Error('Index des copies invalide.');
+ let count=0;for(const id of ids){if(typeof id!=='string'||!/^\d{10,20}$/.test(id))throw Error('Identifiant de copie invalide.');const raw=localStorage.getItem(PREFIX+id);if(!raw)throw Error('Copie manquante : '+id);
+ const obj=JSON.parse(raw);if(obj.type!=='stockpilot-demo-backup'||!obj.data||typeof obj.data!=='object'||Array.isArray(obj.data))throw Error('Copie incorrecte : '+id);
+ const entries=Object.entries(obj.data);if(!entries.length||entries.length>KEYS.length)throw Error('Sections incorrectes : '+id);
+ entries.forEach(([k,v])=>validateRestoreKey(k,v));count++}
+ status.className='spok';status.textContent=count+' copie(s) locale(s) lisible(s) et structurellement valides. Ceci ne garantit pas leur conservation après effacement du navigateur.';
+ }catch(e){status.className='spbad';status.textContent='Anomalie : '+e.message}}
+function init(){const root=$('dashboard');if(!root)return;const panel=document.createElement('section');panel.id='spIntegrityPanel';panel.className='card';
+ panel.innerHTML='<div class="sectionTitle">V5.3 · Contrôle des sauvegardes</div><p class="sync-meta">Vérifiez les copies locales et exportez une sauvegarde JSON avec empreinte SHA-256. Le contrôle d’un fichier ne remplace pas les données actuelles.</p><div class="actions"><button class="btn" id="spVerifyLocal">Vérifier les copies locales</button><button class="btn main" id="spExportVerified">Exporter avec contrôle d’intégrité</button><label class="btn" for="spVerifyFile">Vérifier un fichier JSON</label><input id="spVerifyFile" type="file" accept=".json,application/json" style="display:none"></div><p class="sync-meta" id="spIntegrityResult" role="status">Données fictives uniquement. Les sauvegardes ne sont pas chiffrées et aucune donnée n’est transmise au cloud.</p>';
+ root.appendChild(panel);$('spVerifyLocal').addEventListener('click',verifyLocal);$('spExportVerified').addEventListener('click',exportVerified);$('spVerifyFile').addEventListener('change',e=>{verifyFile(e.target.files[0]);e.target.value=''});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<script>(()=>{'use strict';
+const URL='https://ieogcyuqgqmaebjkvlns.supabase.co', KEY='sb_publishable_XQnwV3tYH4WDwCQ6GIALQw_jzF82UzT';
+const $=id=>document.getElementById(id);let access=null,refresh=null,expiry=0,user=null;
+const status=s=>{$('spAuthStatus').textContent=s};
+async function request(path,method='GET',body=null,token=null){const headers={'apikey':KEY};if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Erreur HTTP '+r.status);return data}
+function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v63-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}render()}
+async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
+function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access)$('spCloudCompanies').replaceChildren()}
+async function act(fn){try{status('Traitement en cours…');await fn()}catch(e){status('Erreur : '+e.message)}}
+async function companies(){const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.')}
+$('spForgotPassword').addEventListener('click',()=>act(async()=>{const email=$('spAuthEmail').value.trim();if(!email.includes('@')||!email.includes('.'))throw Error('Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation.');await request('/auth/v1/recover?redirect_to='+encodeURIComponent('https://stockvalor.github.io/StockPilot/preview/v6-7-3/index.html'),'POST',{email});status('Si cette adresse possède un compte, un e-mail de réinitialisation sera envoyé. Vérifiez aussi les spams.');}));
+$('spSaveNewPassword').addEventListener('click',()=>act(async()=>{const password=$('spNewPassword').value;if(password.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password},await token());$('spNewPassword').value='';$('spNewPasswordPanel').hidden=true;history.replaceState(null,'',location.pathname+location.search);status('Mot de passe modifié. Vous pouvez utiliser votre compte.');}));
+(function recoveryFromLink(){const hash=new URLSearchParams(location.hash.replace(/^#/,''));if(hash.get('type')!=='recovery'||!hash.get('access_token')||!hash.get('refresh_token'))return;session({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token'),expires_in:Number(hash.get('expires_in')||3600)});$('spConnectedPasswordPanel').hidden=false;$('spConnectedPasswordPanel').scrollIntoView({block:'center'});history.replaceState(null,'',location.pathname+location.search);status('Lien de récupération reconnu. Choisissez votre nouveau mot de passe dans le formulaire ci-dessus.');})();
+$('spSignup').addEventListener('click',()=>act(async()=>{const email=$('spAuthEmail').value.trim(),password=$('spAuthPassword').value,name=$('spAuthCompany').value.trim();if(!email||password.length<8||name.length<2)throw Error('E-mail, mot de passe (8 caractères minimum) et entreprise requis.');try{sessionStorage.setItem('sp-v63-pending-company',name)}catch(e){}const d=await request('/auth/v1/signup','POST',{email,password});if(d.access_token){session(d);await createCompany(name);status('Compte créé et entreprise enregistrée.')}else status('Inscription demandée : vérifiez votre e-mail puis connectez-vous. Le nom de société sera à enregistrer après connexion.')}));
+$('spSignin').addEventListener('click',()=>act(async()=>{const d=await request('/auth/v1/token?grant_type=password','POST',{email:$('spAuthEmail').value.trim(),password:$('spAuthPassword').value});session(d);$('spAuthPassword').value='';await companies();const pending=sessionStorage.getItem('sp-v63-pending-company');if(pending){const existing=await request('/rest/v1/companies?select=id&limit=1','GET',null,await token());if(!existing.length){await createCompany(pending)}sessionStorage.removeItem('sp-v63-pending-company')}}));
+async function createCompany(name){if(!name||name.length<2)throw Error('Saisissez le nom de votre entreprise.');const t=await token();await request('/rest/v1/companies','POST',{name,owner_user_id:user.id},t);await companies()}
+$('spCreateCompany').addEventListener('click',()=>act(async()=>createCompany($('spAuthCompany').value.trim())));
+$('spLoadCompanies').addEventListener('click',()=>act(companies));
+$('spConnectedSavePassword').addEventListener('click',()=>act(async()=>{const pw=$('spConnectedNewPassword').value;if(pw.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password:pw},await token());$('spConnectedNewPassword').value='';status('Mot de passe mis à jour. Vous pouvez désormais vous connecter avec le nouveau mot de passe.');}));
+$('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté. Les données locales V6.1 sont inchangées.')}}));
+try{const saved=JSON.parse(sessionStorage.getItem('sp-v63-session')||'null');if(saved&&saved.access&&saved.refresh){access=saved.access;refresh=saved.refresh;expiry=saved.expiry;user=saved.user;}}catch(e){}render();if(access){act(async()=>{await companies()})}})();</script><script>(function(){function setMode(mode){const box=document.getElementById('spCloudAuth');if(!box)return;box.classList.toggle('spLoginMode',mode==='login');box.classList.toggle('spSignupMode',mode==='signup');document.getElementById('spModeLogin')?.classList.toggle('main',mode==='login');document.getElementById('spModeSignup')?.classList.toggle('main',mode==='signup');}document.getElementById('spModeLogin')?.addEventListener('click',()=>setMode('login'));document.getElementById('spModeSignup')?.addEventListener('click',()=>setMode('signup'));setMode('login');})();</script></body></html>
