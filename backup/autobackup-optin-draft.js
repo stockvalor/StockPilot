@@ -6,6 +6,9 @@
  */
 (function () {
   'use strict';
+  // FAIL CLOSED: shared localStorage stock keys are not yet tenant-isolated.
+  // Keep false until stock storage is migrated to per-company keys and tested.
+  const TENANT_STORAGE_ISOLATION_VERIFIED = false;
   const INTERVAL_MS = 30 * 60 * 1000;
   const MIN_GAP_MS = 30 * 60 * 1000;
   const OPT_IN_KEY = 'stockpilot-cloud-autobackup-enabled-v1';
@@ -23,6 +26,7 @@
     catch (_) { return 0; }
   }
   async function run() {
+    if (!TENANT_STORAGE_ISOLATION_VERIFIED) return false;
     if (!enabled() || inFlight || document.visibilityState !== 'visible' ||
         !navigator.onLine) return false;
     if (typeof saveCloudBackup !== 'function' || typeof token !== 'function' ||
@@ -62,7 +66,10 @@
   }
   // À appeler uniquement après consentement explicite de l'utilisateur.
   window.StockPilotAutoBackupDraft = Object.freeze({
-    enable() { localStorage.setItem(OPT_IN_KEY, 'yes'); start(); },
+    enable() {
+      if (!TENANT_STORAGE_ISOLATION_VERIFIED) throw Error('Sauvegarde automatique bloquée : isolation locale des entreprises non validée.');
+      localStorage.setItem(OPT_IN_KEY, 'yes'); start();
+    },
     disable() { localStorage.removeItem(OPT_IN_KEY); stop(); },
     isEnabled: enabled,
     runNow: run,
