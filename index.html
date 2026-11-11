@@ -79,7 +79,7 @@ html,body{max-width:100%;overflow-x:hidden}
 const DEFAULT_ITEMS=[{id:'GP-001',name:'Gants de protection',stock:4,min:10,target:30,price:7.5},{id:'CE-024',name:"Cartons d'expédition",stock:8,min:20,target:60,price:1.8},{id:'RA-019',name:'Ruban adhésif',stock:120,min:25,target:80,price:2.2},{id:'MAS-008',name:'Masques FFP2',stock:12,min:20,target:50,price:1.15},{id:'FIL-017',name:'Filtres techniques',stock:6,min:8,target:20,price:12.9}];
 const storeKey='stockpilot-futuriste-orders-v2';let orderState;
 function loadOrderState(){try{const bridge=window.StockPilotTenantBridgeDraft;if(!bridge?.identity())return {items:structuredClone(DEFAULT_ITEMS),history:[],draft:[]};const saved=JSON.parse(bridge.read(storeKey)||bridge.read('stockpilot-futuriste-orders-v1'));if(saved&&Array.isArray(saved.items)&&Array.isArray(saved.history)){saved.draft=Array.isArray(saved.draft)?saved.draft:[];return saved}}catch(e){}return {items:structuredClone(DEFAULT_ITEMS),history:[],draft:[]}}
-function saveOrderState(){try{const bridge=window.StockPilotTenantBridgeDraft;if(!bridge?.identity())throw Error('Connectez-vous à une entreprise avant d’enregistrer.');bridge.write(storeKey,JSON.stringify(orderState))}catch(e){document.getElementById('draftNotice').textContent='Enregistrement bloqué : '+e.message}}
+function saveOrderState(){try{const bridge=window.StockPilotTenantBridgeDraft;if(!bridge?.identity())throw Error('Connectez-vous à une entreprise avant d’enregistrer.');bridge.write(storeKey,JSON.stringify(orderState))}catch(e){document.getElementById('draftNotice').textContent='Enregistrement bloqué : '+e.message;throw e}}
 function euros(v){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(v)}
 function safe(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderInventory(){renderStockList();document.getElementById('inventoryEditor').innerHTML=orderState.items.map((p,i)=>`<div class="orderrow"><div><strong>${safe(p.name)}</strong><small>${safe(p.id)} · ${euros(p.price)}/unité · seuil ${p.min}</small></div><div><label class="mini" for="stock${i}">En stock</label><input class="field" id="stock${i}" type="number" min="0" step="1" value="${p.stock}" onchange="editItem(${i},'stock',this.value)"></div><div><label class="mini" for="target${i}">Objectif</label><input class="field" id="target${i}" type="number" min="0" step="1" value="${p.target}" onchange="editItem(${i},'target',this.value)"></div></div>`).join('')}
@@ -227,8 +227,8 @@ orderState=loadOrderState();renderInventory();renderDraft();renderSummary();rend
 <script>
 (function(){
 const key='stockpilot-forecast-v46';
-function get(){try{return JSON.parse(localStorage.getItem(key))||{}}catch(e){return {}}}
-function put(v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){alert('Sauvegarde indisponible dans ce navigateur.')}}
+function get(){try{const b=window.StockPilotTenantBridgeDraft;return b?.identity()?JSON.parse(b.read(key)||'{}'):{}}catch(e){return {}}}
+function put(v){try{const b=window.StockPilotTenantBridgeDraft;if(!b?.identity())throw Error('Connectez-vous à votre entreprise.');b.write(key,JSON.stringify(v))}catch(e){alert('Prévision non enregistrée : '+e.message)}}
 function dataForForecast(id){return get()[id]||{}}
 function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(n){return n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}
@@ -340,7 +340,7 @@ const HELP={scan:['Scanner un produit','1. Ouvrez Scanner. 2. Prenez une photo n
 function helpTopic(key){let x=HELP[key];document.getElementById('helpAnswer').textContent=x[0]+'\n\n'+x[1]}
 function helpSearch(){let q=(document.getElementById('helpQuery').value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');let key=/scan|photo|code.barre|identif/.test(q)?'scan':/recept|livrai/.test(q)?'receive':/command|budget|fournisseur|copilote/.test(q)?'order':/stock|quantit|inventaire|seuil/.test(q)?'stock':/secur|donnee|confiden|sauvegard|compte/.test(q)?'privacy':null;if(key)helpTopic(key);else document.getElementById('helpAnswer').textContent='Je ne trouve pas cette procédure. Essayez : scanner, stock, commande, réception ou sécurité. Cette aide est une recherche locale guidée, pas une IA générative.'}
 const STOCKPILOT_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
-function exportDemoData(){try{let obj={type:'stockpilot-demo-backup',createdAt:new Date().toISOString(),data:{}};STOCKPILOT_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)obj.data[k]=v});if(!Object.keys(obj.data).length)throw Error('Aucune donnée à exporter');let blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='stockpilot-demo-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}catch(e){alert('Export impossible : '+e.message)}}
+function exportDemoData(){if(window.StockPilotTenantBridgeDraft?.identity())return alert('Export historique désactivé pour protéger les comptes clients. Utilisez uniquement un export par entreprise vérifié.');try{let obj={type:'stockpilot-demo-backup',createdAt:new Date().toISOString(),data:{}};STOCKPILOT_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)obj.data[k]=v});if(!Object.keys(obj.data).length)throw Error('Aucune donnée à exporter');let blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='stockpilot-demo-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}catch(e){alert('Export impossible : '+e.message)}}
 function initDemoSecurity(){let bar=document.createElement('div');bar.className='safety-ribbon';bar.innerHTML='<strong>MODE DÉMONSTRATION</strong> · Données fictives uniquement · Comptes Supabase actifs · stocks locaux non synchronisés';document.body.insertBefore(bar,document.body.firstChild);let el=document.createElement('div');el.className='card';el.style.marginTop='16px';el.innerHTML='<div class="sectionTitle">Sauvegarde de démonstration</div><p class="help-hint">Exportez les données locales pour conserver une copie de test. Le fichier JSON n’est pas chiffré : ne le partagez pas et n’y mettez aucune donnée confidentielle.</p><button class="btn" onclick="exportDemoData()">↓ Exporter une copie JSON</button><div class="actions"><label class="btn" for="restoreDemoFile" style="cursor:pointer">↑ Restaurer une sauvegarde JSON</label><input type="file" id="restoreDemoFile" accept="application/json,.json" style="display:none" onchange="restoreDemoData(this.files[0]);this.value=null"><button class="btn" onclick="resetDemoSafely()">↺ Réinitialiser les données de démonstration</button></div><p id="restoreStatus" class="help-hint" role="status">Une restauration vérifie les données autorisées, puis remplace les données locales après confirmation. Utilisez uniquement vos propres fichiers de démonstration.</p><div class="actions"><button class="btn" onclick="go(\'help\')">? Ouvrir le manuel intelligent</button></div>';document.getElementById('dashboard').appendChild(el)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initDemoSecurity);else initDemoSecurity();
 </script><script>
@@ -356,7 +356,7 @@ function validateRestoreKey(k,v){
   for(const o of data.history){if(!o||typeof o!=='object'||!Array.isArray(o.lines)||o.lines.length>2000||typeof o.id!=='string'||o.id.length>120||!['reçue','validée'].includes(o.status))throw Error('Historique de commande invalide.');if(o.lines.some(x=>!x||typeof x!=='object'||!Number.isSafeInteger(x.qty)||x.qty<0||x.qty>1000000))throw Error('Quantité commandée invalide.');}
  }
 }
-async function restoreDemoData(file){
+async function restoreDemoData(file){if(window.StockPilotTenantBridgeDraft?.identity())return alert('Import historique désactivé pour protéger les comptes clients.');
  const status=document.getElementById('restoreStatus');if(!file)return;
  if(file.size>2*1024*1024){status.textContent='Fichier trop volumineux (maximum 2 Mo).';return}
  try{
@@ -388,6 +388,7 @@ const INDEX='stockpilot-v51-local-index';
 const MAX=3;
 function keys(){return ['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46']}
 function snapshot(){
+ if(window.StockPilotTenantBridgeDraft?.identity())return null;
  const data={};keys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v});
  if(!Object.keys(data).length)return null;
  return {type:'stockpilot-demo-backup',createdAt:new Date().toISOString(),data};
@@ -398,7 +399,7 @@ function saveSnapshot(silent=false){
  const old=list();const id=String(Date.now());const payload=JSON.stringify(b);localStorage.setItem(PREFIX+id,payload);if(localStorage.getItem(PREFIX+id)!==payload)throw Error('Vérification de la copie échouée');const arr=[id,...old].slice(0,MAX);try{localStorage.setItem(INDEX,JSON.stringify(arr))}catch(e){localStorage.removeItem(PREFIX+id);throw e}old.filter(x=>!arr.includes(x)).forEach(x=>localStorage.removeItem(PREFIX+x));render();if(!silent)alert('Copie locale créée et vérifiée sur cet appareil. Ce n’est PAS une sauvegarde cloud.');
  }catch(e){if(!silent)alert('Impossible de créer une copie locale : '+e.message)}
 }
-function restoreSnapshot(id){
+function restoreSnapshot(id){if(window.StockPilotTenantBridgeDraft?.identity())return alert('Restauration historique désactivée pour protéger les comptes clients.');
  const raw=localStorage.getItem(PREFIX+id);if(!raw)return alert('Copie introuvable.');
  if(!confirm('Restaurer cette copie locale ? Les données actuelles seront remplacées.'))return;if(!confirm('Confirmer définitivement la restauration ?'))return;
  try{const b=JSON.parse(raw);if(b.type!=='stockpilot-demo-backup'||!b.data||typeof b.data!=='object')throw Error('Format invalide');
