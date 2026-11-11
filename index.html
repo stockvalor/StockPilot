@@ -593,13 +593,8 @@ async function spCloudOrderCreate(){
  if(!access||user?.id!==accountId||selector.value!==companyId)throw Error('Entreprise modifiée.');
  if(!confirm('Créer un brouillon CLOUD de '+quantity+' unité(s) pour '+products[0].name+' ? Le stock ne sera retiré qu’après confirmation.'))return;
  const t=await token();
- const created=await request('/rest/v1/orders','POST',{company_id:companyId,created_by:accountId,status:'draft'},t);
- if(!Array.isArray(created)||created.length!==1||!created[0].id)throw Error('Création de commande non confirmée.');
- const orderId=created[0].id;
- try{
-  const items=await request('/rest/v1/order_items','POST',{order_id:orderId,product_id:productId,quantity},await token());
-  if(!Array.isArray(items)||items.length!==1)throw Error('Ligne de commande non confirmée.');
- }catch(e){$('spCloudOrdersStatus').textContent='Brouillon '+orderId+' créé, mais ligne non confirmée. Vérifiez avant toute autre action. '+e.message;return}
+ const orderId=await request('/rest/v1/rpc/stockpilot_create_test_order','POST',{p_company_id:companyId,p_product_id:productId,p_quantity:quantity},t);
+ if(typeof orderId!=='string'||!/^[0-9a-f-]{36}$/i.test(orderId))throw Error('Création atomique non confirmée : vérifiez les commandes avant de recommencer.');
  await spCloudOrdersLoad();
  $('spCloudOrdersStatus').textContent='Brouillon cloud créé avec une ligne. Confirmation séparée obligatoire.';
 }
