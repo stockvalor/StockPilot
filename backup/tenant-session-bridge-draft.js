@@ -10,7 +10,7 @@ const events=new Set();
 function requireActive(){if(!active||!store)throw Error('Aucun espace entreprise authentifié');return store;}
 function activate(userId,companyId){
   if(!global.StockPilotTenantStorageDraft)throw Error('Adaptateur entreprise manquant');
-  const next=global.StockPilotTenantStorageDraft.forTenant(userId,companyId);
+  let next;try{next=global.StockPilotTenantStorageDraft.forTenant(userId,companyId)}catch(error){disconnect();throw error;}
   const changed=!active||active.userId!==userId||active.companyId!==companyId;
   if(changed){store=null;active=null;for(const fn of events)fn();}
   store=next;
