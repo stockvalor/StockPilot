@@ -524,17 +524,22 @@ async function spCloudOrdersLoad(){
  const select=$('spCloudOrderProduct');select.replaceChildren();select.add(new Option('Choisir un produit [TEST]',''));
  for(const p of products.filter(p=>p.name.startsWith('[TEST] ')))select.add(new Option(p.name+' — stock '+p.quantity,p.id));
  const root=$('spCloudOrdersResults');root.replaceChildren();
+ const testProductIds=new Set(products.filter(p=>p.name.startsWith('[TEST] ')).map(p=>p.id));
  for(const order of orders){
   const line=document.createElement('div');line.className='item';
   const description=document.createElement('span');
   description.textContent=order.id.slice(0,8)+' · '+order.status+' · '+(order.order_items||[]).map(i=>i.quantity+' unité(s)').join(', ');
   line.append(description);
-  if(order.status==='draft'||order.status==='confirmed'){
+  if((order.status==='draft'||order.status==='confirmed')&&Array.isArray(order.order_items)&&order.order_items.length>0&&order.order_items.every(i=>testProductIds.has(i.product_id))){
    const action=document.createElement('button');action.type='button';action.className='btn';
    action.textContent=order.status==='draft'?'Confirmer (retirer du stock)':'Annuler (remettre en stock)';
    action.addEventListener('click',()=>act(async()=>{
     if(!access||user?.id!==accountId||selector.value!==companyId)throw Error('Entreprise modifiée.');
-    if(!confirm((order.status==='draft'?'Confirmer et retirer le stock':'Annuler et restituer le stock')+' pour cette commande CLOUD ?'))return;
+    const currentItems=await request('/rest/v1/order_items?select=product_id,quantity&order_id=eq.'+encodeURIComponent(order.id),'GET',null,await token());
+    const currentProducts=await request('/rest/v1/products?select=id,name&company_id=eq.'+encodeURIComponent(companyId),'GET',null,await token());
+    const safeIds=new Set(currentProducts.filter(p=>p.name.startsWith('[TEST] ')).map(p=>p.id));
+    if(!currentItems.length||currentItems.some(i=>!safeIds.has(i.product_id)))throw Error('Commande non exclusivement fictive : opération refusée.');
+    if(!confirm((order.status='draft'?'Confirmer et retirer le stock':'Annuler et restituer le stock')+' pour cette commande CLOUD ?'))return;
     const rpc=order.status==='draft'?'stockpilot_confirm_order':'stockpilot_cancel_order';
     await request('/rest/v1/rpc/'+rpc,'POST',{p_order_id:order.id},await token());
     await spCloudOrdersLoad();
