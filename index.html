@@ -524,4 +524,41 @@ header{z-index:10001!important}
 .copilotbox{position:relative}
 </style>
 <script id="stockpilot-copilot-mobile-input-helper">(function(){function init(){const field=document.getElementById('copilotQuestion');if(!field)return;field.removeAttribute('readonly');field.removeAttribute('disabled');const label=document.querySelector('label[for="copilotQuestion"]');if(label){label.style.cursor='text';label.addEventListener('click',function(){field.focus()})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
-</body></html>
+<style>
+#spLicenseFab{position:fixed;right:16px;bottom:18px;z-index:8998;border:1px solid #35e7ad88;background:#112d34;color:#baffea;padding:12px 16px;border-radius:14px;box-shadow:0 8px 32px #0008;font-weight:700}
+#spLicensePanel{display:none;position:fixed;inset:0;z-index:8999;background:#050b15dd;align-items:center;justify-content:center;padding:18px}
+#spLicensePanel.open{display:flex}#spLicensePanel .spLicenseCard{width:min(540px,100%);max-height:90vh;overflow:auto;background:#121c30;border:1px solid #36dbac66;border-radius:18px;padding:22px;color:#edf7ff;box-shadow:0 18px 80px #000b}
+#spLicensePanel button{background:#1c4650;border:1px solid #44d7af66;border-radius:10px;padding:10px 14px;color:#fff}
+#spLicensePanel input{display:block;width:100%;margin:8px 0 12px;background:#091323;border:1px solid #456073;border-radius:9px;padding:12px;color:#fff}
+#spLicensePanel .spLicenseHint{font-size:13px;line-height:1.55;color:#c0cfdd}
+</style>
+<button id="spLicenseFab" type="button" aria-label="Informations sur les licences">🔑 Licence</button>
+<div id="spLicensePanel" role="dialog" aria-modal="true" aria-label="Licence StockPilot AI"><div class="spLicenseCard">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0">Licence StockPilot AI</h2><button id="spLicenseClose" type="button">Fermer ✕</button></div>
+<p style="color:#65edbd;font-weight:700">V6.8.12 · Vérification cryptographique expérimentale</p>
+<p>Licence à vie locale, avec sauvegarde cloud facultative.</p>
+<div style="padding:12px;background:#0c2630;border-radius:12px;border:1px solid #357b78"><strong>État : mode de test</strong><p class="spLicenseHint">Aucune licence commerciale n'est encore délivrée. Cette interface ne verrouille pas vos stocks et n'effectue aucun paiement.</p></div>
+<label for="spLicenseCode" style="display:block;margin-top:18px">Code de licence (préparation du parcours)</label>
+<input id="spLicenseCode" placeholder="Ex. SP-XXXX-XXXX" autocomplete="off" spellcheck="false"/>
+<button id="spLicenseCheck" type="button">Vérifier le code</button>
+<p id="spLicenseResult" role="status" class="spLicenseHint">Vérification locale des signatures ECDSA P-256 disponible. Émission et activation commerciales non configurées.</p>
+<hr style="border:0;border-top:1px solid #ffffff22;margin:18px 0"/>
+<p class="spLicenseHint">Important : un code saisi ici n'active aucune licence. Une future version devra vérifier une signature numérique, empêcher les activations frauduleuses et conserver l'accès local hors connexion. Ne saisissez pas de données confidentielles.</p>
+</div></div>
+<script>(function(){function init(){const panel=document.getElementById('spLicensePanel'),fab=document.getElementById('spLicenseFab'),close=document.getElementById('spLicenseClose'),check=document.getElementById('spLicenseCheck'),input=document.getElementById('spLicenseCode'),result=document.getElementById('spLicenseResult');fab.onclick=()=>{panel.classList.add('open');input.focus()};close.onclick=()=>panel.classList.remove('open');panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.remove('open')});document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});check.onclick=()=>{result.textContent='Code non activé : service de vérification sécurisé non encore configuré. Vos stocks restent accessibles.'}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><style>
+/* V6.8.11: license dialog above sticky header and mobile menu */
+#spLicensePanel{z-index:2147483000!important;isolation:isolate;overflow-y:auto;overscroll-behavior:contain;align-items:safe center}
+#spLicensePanel .spLicenseCard{position:relative;z-index:1;max-height:min(90dvh,90vh);overflow-y:auto;overscroll-behavior:contain}
+#spLicenseFab{z-index:9000}
+@media(max-width:850px){#spLicensePanel{padding:12px;align-items:center}#spLicensePanel .spLicenseCard{max-height:calc(100dvh - 24px);padding:18px}}
+</style>
+<script>(function(){function init(){const p=document.getElementById('spLicensePanel');if(!p)return;const parent=document.body;if(p.parentElement!==parent)parent.appendChild(p);p.addEventListener('click',e=>{if(e.target===p)document.activeElement?.blur?.()});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><script>
+/* Offline verification prototype: public key only; issuance service is NOT deployed. */
+(function(){
+const PUBLIC_KEY='BADfiYqQKXHQBKKbLBUBhbPVMvHW1f9-GP2PMPI8PWo0xKFHypuLa48TPSJWMjM8ZKZjQbWdzyyq_KoId6fn5OQ';
+function bytes(v){if(!/^[A-Za-z0-9_-]+$/.test(v))throw Error('Format invalide');const s=v.replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(s+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0))}
+async function verify(value){if(!crypto.subtle)throw Error('Vérification cryptographique indisponible');const parts=value.trim().split('.');if(parts.length!==2)throw Error('Format de licence invalide');const payload=bytes(parts[0]),signature=bytes(parts[1]);if(payload.length>4096||signature.length!==64)throw Error('Taille de licence invalide');const key=await crypto.subtle.importKey('raw',bytes(PUBLIC_KEY),{name:'ECDSA',namedCurve:'P-256'},false,['verify']);const ok=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,signature,payload);if(!ok)throw Error('Signature non valide');const obj=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(payload));if(obj.product!=='StockPilot AI'||obj.edition!=='lifetime'||obj.schema!==1||typeof obj.license_id!=='string'||!/^SP-[A-Z0-9-]{8,64}$/.test(obj.license_id))throw Error('Contenu de licence invalide');return obj}
+function init(){const b=document.getElementById('spLicenseCheck'),i=document.getElementById('spLicenseCode'),o=document.getElementById('spLicenseResult');if(!b||!i||!o)return;b.addEventListener('click',async function(e){e.stopImmediatePropagation();e.preventDefault();b.disabled=true;o.textContent='Vérification cryptographique locale en cours…';try{const data=await verify(i.value);o.textContent='Signature vérifiée pour '+data.license_id+'. Prototype uniquement : activation commerciale et association au client non configurées.'}catch(err){o.textContent='Licence non activée : '+err.message+'. Vos stocks restent accessibles.'}finally{b.disabled=false}},true)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script></body></html>
