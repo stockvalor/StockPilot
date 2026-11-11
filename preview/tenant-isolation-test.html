@@ -1,0 +1,17 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StockPilot — banc d'essai isolation</title><style>body{font:16px system-ui;background:#0c1527;color:#f1f5fa;max-width:720px;margin:30px auto;padding:18px}button{padding:12px;margin:5px;background:#163e45;color:white;border:1px solid #46dcb3;border-radius:8px}pre{white-space:pre-wrap;background:#18253a;padding:16px;border-radius:8px}</style></head><body><h1>StockPilot — tests d'isolation locale</h1><p>Banc d'essai indépendant. Aucun compte ni donnée de production utilisé. Les tests utilisent une mémoire simulée.</p><button id="run">Exécuter les tests</button><pre id="results">Tests non lancés</pre><script src="../backup/tenant-storage-draft.js"></script><script src="../backup/tenant-backup-payload-draft.js"></script><script>
+document.getElementById('run').addEventListener('click',()=>{
+const out=[],assert=(ok,msg)=>{if(!ok)throw Error(msg);out.push('✓ '+msg)};
+try{
+const m=new Map(),store={getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)};
+const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',ca='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',cb='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',k='stockpilot-futuriste-orders-v2';
+const A=StockPilotTenantStorageDraft.forTenant(a,ca,store),B=StockPilotTenantStorageDraft.forTenant(b,cb,store);
+A.write(k,JSON.stringify({items:[],history:[],tenant:'A'}));B.write(k,JSON.stringify({items:[],history:[],tenant:'B'}));
+assert(A.read(k).includes('"A"')&&B.read(k).includes('"B"'),'Stocks locaux distincts');
+const p=StockPilotTenantBackupDraft.createPayload(A,(_,v)=>JSON.parse(v),ca);
+assert(p.data[k].includes('"A"')&&!p.data[k].includes('"B"'),'Sauvegarde ne contient que A');
+let denied=false;try{StockPilotTenantBackupDraft.validatePayloadCompany(p,cb)}catch(_){denied=true}
+assert(denied,'Sauvegarde A refusée pour entreprise B');
+store.setItem(k,'ancien stock');assert(A.read(k)!=='ancien stock','Données historiques non importées');
+document.getElementById('results').textContent=out.join('\n')+'\n4/4 contrôles réussis';
+}catch(e){document.getElementById('results').textContent=out.join('\n')+'\n✗ '+e.message}
+});</script></body></html>
