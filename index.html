@@ -124,23 +124,8 @@ function exportOrderText(i){
 #copilotQuestion:focus{outline:3px solid #65e6fa!important;outline-offset:2px!important}
 .copilotbox{position:relative}
 </style>
-<script id="stockpilot-copilot-mobile-input-helper">(function(){function init(){const field=document.getElementById('copilotQuestion');if(!field)return;field.removeAttribute('readonly');field.removeAttribute('disabled');const label=document.querySelector('label[for="copilotQuestion"]');if(label){label.style.cursor='text';label.addEventListener('click',function(){field.focus()})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();<\/script>
-<style>
-/* Mobile menu: keep content visible while expanded */
-@media(max-width:850px){
- body.spMenuOpen .shell>.side{position:relative!important;top:auto!important;left:auto!important;right:auto!important;width:100%!important;max-height:min(58dvh,480px)!important;margin:0 0 16px!important;z-index:2!important;box-shadow:0 8px 24px #0005!important}
- body.spMenuOpen::before{display:none!important}
- body.spMenuOpen .shell>main{position:relative;z-index:1}
-}
-</style><style>
-/* StockPilot compact left-aligned mobile navigation */
-@media(max-width:850px){
- body.spMenuOpen .shell>.side{position:relative!important;top:auto!important;left:auto!important;right:auto!important;width:min(100%,360px)!important;max-height:min(60dvh,440px)!important;margin:0 auto 16px 0!important;padding:10px!important;gap:2px!important;overflow-y:auto!important;border-radius:15px!important;box-shadow:0 8px 22px #0005!important;align-items:stretch!important}
- body.spMenuOpen .shell>.side .nav{display:flex!important;justify-content:flex-start!important;align-items:center!important;text-align:left!important;min-height:43px!important;padding:9px 13px!important;font-size:14px!important;line-height:1.3!important;width:100%!important}
- body.spMenuOpen::before{display:none!important}
- body.spMenuOpen .shell>main{position:relative;z-index:1}
-}
-</style></body></html>`;
+<script id="stockpilot-copilot-mobile-input-helper">(function(){function init(){const field=document.getElementById('copilotQuestion');if(!field)return;field.removeAttribute('readonly');field.removeAttribute('disabled');const label=document.querySelector('label[for="copilotQuestion"]');if(label){label.style.cursor='text';label.addEventListener('click',function(){field.focus()})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script>
+</body></html>`;
  const url=URL.createObjectURL(new Blob([doc],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=o.id+'-bon-commande-A4.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
  notify('Bon de commande A4 téléchargé. Ouvrez-le dans Chrome puis utilisez Imprimer / Enregistrer en PDF.');
 }
