@@ -36,3 +36,18 @@ test('WebCrypto rejects a changed signature', async () => {
   const changed = Uint8Array.from(signature); changed[0] ^= 1;
   assert.equal(await browserVerify(data, changed), false);
 });
+
+test('WebCrypto rejects signature from a different issuer', async () => {
+  const other = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const otherSignature = sign('sha256', Buffer.from(data), {
+    key: other.privateKey, dsaEncoding: 'ieee-p1363'
+  });
+  assert.equal(await browserVerify(data, otherSignature), false);
+});
+test('WebCrypto rejects a signature with a wrong size', async () => {
+  assert.equal(await browserVerify(data, signature.subarray(0, 32)), false);
+});
+test('WebCrypto rejects altered customer binding', async () => {
+  const altered = encoder.encode(JSON.stringify({ ...payload, customer_id: randomUUID() }));
+  assert.equal(await browserVerify(altered, signature), false);
+});
