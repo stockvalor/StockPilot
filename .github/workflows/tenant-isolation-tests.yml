@@ -1,0 +1,21 @@
+name: StockPilot tenant isolation tests
+on:
+  push:
+    branches:
+      - develop/securite-cloud-licences
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify JavaScript syntax
+        run: |
+          node --check backup/tenant-storage-draft.js
+          node --check backup/tenant-backup-payload-draft.js
+          node --check backup/autobackup-optin-draft.js
+      - name: Tenant unit tests
+        run: node --test backup/tests/*.test.cjs
