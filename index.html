@@ -85,7 +85,7 @@ function spSwitchInventoryOwner(id){const next=id||null;if(next===spInventoryOwn
 function euros(v){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(v)}
 function safe(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderInventory(){renderStockList();document.getElementById('inventoryEditor').innerHTML=orderState.items.map((p,i)=>`<div class="orderrow"><div><strong>${safe(p.name)}</strong><small>${safe(p.id)} · ${euros(p.price)}/unité · seuil ${p.min}</small></div><div><label class="mini" for="stock${i}">En stock</label><input class="field" id="stock${i}" type="number" min="0" step="1" value="${p.stock}" onchange="editItem(${i},'stock',this.value)"></div><div><label class="mini" for="target${i}">Objectif</label><input class="field" id="target${i}" type="number" min="0" step="1" value="${p.target}" onchange="editItem(${i},'target',this.value)"></div></div>`).join('')}
-function editItem(i,k,v){const n=Number(v);if(!Number.isInteger(n)||n<0||n>1000000){notify('Saisissez un entier positif valide.');renderInventory();return}orderState.items[i][k]=n;saveOrderState();renderSummary()}
+function editItem(i,k,v){if(spInventoryOwner){notify('Modifiez les quantités depuis Mes stocks cloud.');renderInventory();return}const n=Number(v);if(!Number.isInteger(n)||n<0||n>1000000){notify('Saisissez un entier positif valide.');renderInventory();return}orderState.items[i][k]=n;saveOrderState();renderSummary()}
 function generateDraft(){orderState.draft=orderState.items.filter(p=>p.stock<p.min&&p.target>p.stock).map(p=>({id:p.id,name:p.name,qty:p.target-p.stock,price:p.price,selected:true,stock:p.stock,min:p.min,target:p.target}));saveOrderState();renderDraft();renderSummary();document.getElementById('draftNotice').textContent=orderState.draft.length?'Suggestions expliquées ligne par ligne. Modifiez une quantité pour recalculer le coût et afficher les avertissements.':'Aucun produit sous son seuil minimal.'}
 function explainDraft(p){
  if(p.forecastReason){
@@ -126,7 +126,7 @@ function exportOrderText(i){
  notify('Bon de commande A4 téléchargé. Ouvrez-le dans Chrome puis utilisez Imprimer / Enregistrer en PDF.');
 }
 function renderHistory(){document.getElementById('orderHistory').innerHTML=orderState.history.length?orderState.history.map((o,i)=>`<div class="historyitem"><strong>${safe(o.id)}</strong> <span class="status">${o.status==='reçue'?'Réceptionnée':'Validée · non envoyée'}</span><small>${new Date(o.date).toLocaleString('fr-FR')} · ${o.lines.length} ligne(s) · ${euros(o.total)}</small><small>Fournisseur : ${safe(o.supplier||'Non renseigné')}</small><div class="actions"><button class="btn" onclick="exportOrder(${i})">↓ CSV</button><button class="btn" onclick="exportOrderText(${i})">↓ Bon A4 / PDF</button>${o.status==='reçue'?'':`<button class="btn main" onclick="receiveOrder(${i})">✓ Confirmer réception</button>`}</div></div>`).join(''):'<p>Aucune commande validée pour le moment.</p>'}
-function resetInventory(){if(!confirm('Réinitialiser uniquement les quantités d’exemple ? Les brouillons validés seront conservés.'))return;orderState.items=structuredClone(DEFAULT_ITEMS);orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();notify('Inventaire de démonstration réinitialisé.')}
+function resetInventory(){if(spInventoryOwner){notify('La réinitialisation de démonstration est désactivée pour un compte cloud.');return}if(!confirm('Réinitialiser uniquement les quantités d’exemple ? Les brouillons validés seront conservés.'))return;orderState.items=structuredClone(DEFAULT_ITEMS);orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();notify('Inventaire de démonstration réinitialisé.')}
 
 function renderStockList(){const box=document.getElementById('stockList');if(!box||!orderState)return;box.innerHTML=orderState.items.map(p=>`<div class="item"><div><strong>${safe(p.name)}</strong><small>${safe(p.brand||p.category||'Produit')} · ${safe(p.id)}</small></div><span class="${p.stock<p.min?'warn':'count'}">${p.stock} en stock</span></div>`).join('')}
 function setScanStatus(message){document.getElementById('scanStatus').textContent=message}
@@ -533,7 +533,7 @@ async function spRefreshCloudOrderView(){
  if(!user?.id||!spInventoryOwner)return;
  const ctx=await spCloudContext(),ps=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(ctx.company.id),'GET',null,ctx.t);
  if(user?.id!==ctx.uid)return;
- orderState.items=ps.map(p=>({id:p.id,name:p.name,stock:p.quantity,min:p.min_quantity,target:p.min_quantity,price:Number(p.unit_price||0),sku:p.sku||''}));
+ orderState.items=ps.map(p=>({id:p.id,name:p.name,stock:p.quantity,min:p.min_quantity,target:Math.max(p.min_quantity,p.min_quantity*2),price:Number(p.unit_price||0),sku:p.sku||''}));
  orderState.draft=[];renderInventory();renderDraft();renderSummary();
  const notice=document.getElementById('draftNotice');if(notice)notice.textContent='Commandes : calculs fondés sur les produits cloud. Validation du brouillon locale uniquement, sans achat.';
 }
