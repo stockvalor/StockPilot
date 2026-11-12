@@ -534,7 +534,7 @@ async function spRefreshCloudOrderView(){
  const ctx=await spCloudContext(),ps=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(ctx.company.id),'GET',null,ctx.t);
  if(user?.id!==ctx.uid)return;
  orderState.items=ps.map(p=>({id:p.id,name:p.name,stock:p.quantity,min:p.min_quantity,target:Math.max(p.min_quantity,p.min_quantity*2),price:Number(p.unit_price||0),sku:p.sku||''}));
- orderState.draft=[];renderInventory();renderDraft();renderSummary();
+ orderState.draft=[];renderInventory();renderDraft();renderSummary();renderHistory();
  const notice=document.getElementById('draftNotice');if(notice)notice.textContent='Commandes : calculs fondés sur les produits cloud. Validation du brouillon locale uniquement, sans achat.';
 }
 async function spAddCloudProduct(){
@@ -547,7 +547,7 @@ async function spAddCloudProduct(){
 (function spSecureInventoryUI(){
  const host=$('stock');if(!host)return;const section=document.createElement('section');section.id='spCloudInventorySection';section.hidden=true;section.className='card';section.style.marginTop='16px';
  const heading=document.createElement('h3');heading.textContent='Inventaire cloud sécurisé';
- const info=document.createElement('p');info.textContent='Produits séparés par entreprise via Supabase. Les anciens stocks locaux restent inchangés et ne sont pas importés automatiquement.';const warning=document.createElement('p');warning.textContent='Les écrans Scanner et Commandes utilisent encore des données locales de démonstration. Pour les produits cloud, utilisez exclusivement ce module.';
+ const info=document.createElement('p');info.textContent='Produits séparés par entreprise via Supabase. Les anciens stocks locaux restent inchangés et ne sont pas importés automatiquement.';const warning=document.createElement('p');warning.textContent='Compte connecté : le scanner enregistre les produits confirmés dans Supabase et les commandes consultent les stocks cloud. Les brouillons de commandes restent locaux et aucun achat n’est envoyé. Sans connexion, les données de démonstration restent locales.';
  const name=document.createElement('input');name.id='spCloudProductName';name.className='field';name.placeholder='Nom du produit';
  const sku=document.createElement('input');sku.id='spCloudProductSku';sku.className='field';sku.placeholder='Référence facultative';
  const qty=document.createElement('input');qty.id='spCloudProductQty';qty.className='field';qty.type='number';qty.min='0';qty.value='1';
