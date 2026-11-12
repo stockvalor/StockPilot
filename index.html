@@ -175,7 +175,7 @@ async function lookupProduct(){
  }catch(error){out.textContent='Recherche impossible pour le moment. Vérifiez votre connexion ou utilisez la saisie manuelle.'}finally{btn.disabled=false;btn.textContent='⌕ Rechercher le produit avec ce code'}
 }
 
-function confirmProduct(){const get=id=>document.getElementById(id).value.trim();const name=get('prodName'),code=get('scanCode');const qty=Number(get('prodQty')),min=Number(get('prodMin')),target=Number(get('prodTarget')),price=Number(get('prodPrice'));if(!name){notify('Indiquez le nom du produit.');return}if(![qty,min,target].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000){notify('Vérifiez les quantités, les seuils et le prix.');return}const id=code||'INT-'+Date.now();const existing=orderState.items.find(p=>p.id===id);const prompt=existing?`Ajouter ${qty} unité(s) à « ${existing.name} » ? Le stock passera de ${existing.stock} à ${existing.stock+qty}.`:`Enregistrer « ${name} » (${qty} unité(s)) dans votre stock ?`;if(!confirm(prompt))return;if(existing){existing.stock+=qty;existing.name=name;existing.brand=get('prodBrand');existing.category=get('prodCategory');existing.min=min;existing.target=target;existing.price=price}else{orderState.items.push({id,name,brand:get('prodBrand'),category:get('prodCategory'),stock:qty,min,target,price})}orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();document.getElementById('lookupResult').textContent='Produit enregistré dans l’inventaire local. Il est maintenant pris en compte dans les commandes.';notify('Produit enregistré !');go('stock')}
+function confirmProduct(){if(spInventoryOwner){spConfirmCloudProduct().catch(e=>notify('Erreur cloud : '+e.message));return}const get=id=>document.getElementById(id).value.trim();const name=get('prodName'),code=get('scanCode');const qty=Number(get('prodQty')),min=Number(get('prodMin')),target=Number(get('prodTarget')),price=Number(get('prodPrice'));if(!name){notify('Indiquez le nom du produit.');return}if(![qty,min,target].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000){notify('Vérifiez les quantités, les seuils et le prix.');return}const id=code||'INT-'+Date.now();const existing=orderState.items.find(p=>p.id===id);const prompt=existing?`Ajouter ${qty} unité(s) à « ${existing.name} » ? Le stock passera de ${existing.stock} à ${existing.stock+qty}.`:`Enregistrer « ${name} » (${qty} unité(s)) dans votre stock ?`;if(!confirm(prompt))return;if(existing){existing.stock+=qty;existing.name=name;existing.brand=get('prodBrand');existing.category=get('prodCategory');existing.min=min;existing.target=target;existing.price=price}else{orderState.items.push({id,name,brand:get('prodBrand'),category:get('prodCategory'),stock:qty,min,target,price})}orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();document.getElementById('lookupResult').textContent='Produit enregistré dans l’inventaire local. Il est maintenant pris en compte dans les commandes.';notify('Produit enregistré !');go('stock')}
 
 
 function setCopilotExample(value){document.getElementById('copilotQuestion').value=value;askCopilot()}
@@ -502,6 +502,7 @@ async function spLoadSecureProducts(){
  if(user?.id!==uid)throw Error('Compte changé pendant le chargement.');
  box.replaceChildren();const heading=document.createElement('p');heading.textContent='Entreprise : '+company.name+' — '+ps.length+' produit(s)';box.append(heading);
  if(!ps.length){const p=document.createElement('p');p.textContent='Aucun produit cloud. Les données locales historiques ne sont pas transférées.';box.append(p)}
+ await spRefreshCloudOrderView();
  for(const p of ps){
  const row=document.createElement('div');row.className='actions';row.style.margin='8px 0';
  const label=document.createElement('span');label.textContent=p.name+' · '+p.quantity+' unité(s)'+(p.sku?' · '+p.sku:'');
@@ -511,6 +512,30 @@ async function spLoadSecureProducts(){
  row.append(label,edit,del);box.append(row)
  }
  }catch(e){spCloudCompanyId=null;box.textContent='Lecture cloud impossible : '+e.message}
+}
+async function spConfirmCloudProduct(){
+ const get=id=>document.getElementById(id).value.trim();
+ const name=get('prodName'),sku=get('scanCode'),quantity=Number(get('prodQty')),min_quantity=Number(get('prodMin')),price=Number(get('prodPrice'));
+ if(!name||name.length>250||sku.length>120||![quantity,min_quantity].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000)throw Error('Saisie produit invalide.');
+ const ctx=await spCloudContext(),uid=ctx.uid;
+ const existing=sku?await request('/rest/v1/products?select=id,name,quantity&company_id=eq.'+encodeURIComponent(ctx.company.id)+'&sku=eq.'+encodeURIComponent(sku),'GET',null,ctx.t):[];
+ if(existing.length>1)throw Error('Référence en double : correction manuelle nécessaire.');
+ const current=existing[0],next=current?current.quantity+quantity:quantity;
+ if(next>1000000)throw Error('Quantité maximale dépassée.');
+ if(!confirm(current?'Ajouter '+quantity+' unité(s) à '+current.name+' ?':'Ajouter '+name+' ('+quantity+' unité(s)) au stock cloud ?'))return;
+ if(user?.id!==uid)throw Error('Compte modifié pendant la saisie.');
+ const again=await spCloudContext();if(again.uid!==uid||again.company.id!==ctx.company.id)throw Error('Session modifiée.');
+ if(current)await request('/rest/v1/products?id=eq.'+encodeURIComponent(current.id)+'&company_id=eq.'+encodeURIComponent(ctx.company.id),'PATCH',{name,quantity:next,min_quantity,unit_price:price},again.t);
+ else await request('/rest/v1/products','POST',{company_id:ctx.company.id,name,sku:sku||null,quantity,min_quantity,unit_price:price},again.t);
+ await spLoadSecureProducts();await spRefreshCloudOrderView();notify('Produit enregistré dans Supabase.');go('stock');
+}
+async function spRefreshCloudOrderView(){
+ if(!user?.id||!spInventoryOwner)return;
+ const ctx=await spCloudContext(),ps=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(ctx.company.id),'GET',null,ctx.t);
+ if(user?.id!==ctx.uid)return;
+ orderState.items=ps.map(p=>({id:p.id,name:p.name,stock:p.quantity,min:p.min_quantity,target:p.min_quantity,price:Number(p.unit_price||0),sku:p.sku||''}));
+ orderState.draft=[];renderInventory();renderDraft();renderSummary();
+ const notice=document.getElementById('draftNotice');if(notice)notice.textContent='Commandes : calculs fondés sur les produits cloud. Validation du brouillon locale uniquement, sans achat.';
 }
 async function spAddCloudProduct(){
  const name=$('spCloudProductName').value.trim(),sku=$('spCloudProductSku').value.trim(),quantity=Number($('spCloudProductQty').value),price=Number($('spCloudProductPrice').value);
