@@ -175,7 +175,22 @@ async function lookupProduct(){
  }catch(error){out.textContent='Recherche impossible pour le moment. Vérifiez votre connexion ou utilisez la saisie manuelle.'}finally{btn.disabled=false;btn.textContent='⌕ Rechercher le produit avec ce code'}
 }
 
-function confirmProduct(){if(spInventoryOwner){spConfirmCloudProduct().catch(e=>notify('Erreur cloud : '+e.message));return}const get=id=>document.getElementById(id).value.trim();const name=get('prodName'),code=get('scanCode');const qty=Number(get('prodQty')),min=Number(get('prodMin')),target=Number(get('prodTarget')),price=Number(get('prodPrice'));if(!name){notify('Indiquez le nom du produit.');return}if(![qty,min,target].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000){notify('Vérifiez les quantités, les seuils et le prix.');return}const id=code||'INT-'+Date.now();const existing=orderState.items.find(p=>p.id===id);const prompt=existing?`Ajouter ${qty} unité(s) à « ${existing.name} » ? Le stock passera de ${existing.stock} à ${existing.stock+qty}.`:`Enregistrer « ${name} » (${qty} unité(s)) dans votre stock ?`;if(!confirm(prompt))return;if(existing){existing.stock+=qty;existing.name=name;existing.brand=get('prodBrand');existing.category=get('prodCategory');existing.min=min;existing.target=target;existing.price=price}else{orderState.items.push({id,name,brand:get('prodBrand'),category:get('prodCategory'),stock:qty,min,target,price})}orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();document.getElementById('lookupResult').textContent='Produit enregistré dans l’inventaire local. Il est maintenant pris en compte dans les commandes.';notify('Produit enregistré !');go('stock')}
+function confirmProduct(){if(spInventoryOwner){
+ const button=document.querySelector('button[onclick="confirmProduct()"]');
+ let feedback=document.getElementById('spProductSaveFeedback');
+ if(!feedback){feedback=document.createElement('p');feedback.id='spProductSaveFeedback';feedback.setAttribute('role','alert');feedback.style.cssText='margin:12px 0;padding:12px;border:1px solid #7c87ad;border-radius:10px;white-space:pre-wrap;color:#fff;background:#22253d';button?.insertAdjacentElement('afterend',feedback)}
+ if(button?.disabled)return;
+ if(button)button.disabled=true;
+ feedback.textContent='Vérification du compte et enregistrement en cours…';
+ Promise.resolve().then(()=>spConfirmCloudProduct()).then(()=>{
+   feedback.textContent='Opération terminée. Vérifiez le produit dans Mes stocks.';
+ }).catch(e=>{
+   const message='Enregistrement impossible : '+(e?.message||String(e));
+   feedback.textContent=message;
+   feedback.scrollIntoView({block:'nearest',behavior:'smooth'});
+ }).finally(()=>{if(button)button.disabled=false});
+ return
+ }const get=id=>document.getElementById(id).value.trim();const name=get('prodName'),code=get('scanCode');const qty=Number(get('prodQty')),min=Number(get('prodMin')),target=Number(get('prodTarget')),price=Number(get('prodPrice'));if(!name){notify('Indiquez le nom du produit.');return}if(![qty,min,target].every(n=>Number.isSafeInteger(n)&&n>=0&&n<=1000000)||!Number.isFinite(price)||price<0||price>100000000){notify('Vérifiez les quantités, les seuils et le prix.');return}const id=code||'INT-'+Date.now();const existing=orderState.items.find(p=>p.id===id);const prompt=existing?`Ajouter ${qty} unité(s) à « ${existing.name} » ? Le stock passera de ${existing.stock} à ${existing.stock+qty}.`:`Enregistrer « ${name} » (${qty} unité(s)) dans votre stock ?`;if(!confirm(prompt))return;if(existing){existing.stock+=qty;existing.name=name;existing.brand=get('prodBrand');existing.category=get('prodCategory');existing.min=min;existing.target=target;existing.price=price}else{orderState.items.push({id,name,brand:get('prodBrand'),category:get('prodCategory'),stock:qty,min,target,price})}orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();document.getElementById('lookupResult').textContent='Produit enregistré dans l’inventaire local. Il est maintenant pris en compte dans les commandes.';notify('Produit enregistré !');go('stock')}
 
 
 function setCopilotExample(value){document.getElementById('copilotQuestion').value=value;askCopilot()}
