@@ -486,29 +486,50 @@ function session(data){access=data.access_token||null;refresh=data.refresh_token
 async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
 function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access)$('spCloudCompanies').replaceChildren();if(typeof spSwitchInventoryOwner==='function')spSwitchInventoryOwner(access&&user?.id?user.id:null)}
 async function act(fn){try{status('Traitement en cours…');await fn()}catch(e){status('Erreur : '+e.message)}}
+let spCloudCompanyId=null;
+async function spCloudContext(){
+ const t=await token(),me=await request('/auth/v1/user','GET',null,t);
+ if(!me.id||me.id!==user?.id)throw Error('Identité non vérifiée.');
+ const cs=await request('/rest/v1/companies?select=id,name&order=created_at.asc','GET',null,t);
+ if(cs.length!==1)throw Error(cs.length?'Plusieurs entreprises : sélection explicite nécessaire.':'Créez votre entreprise avant de gérer les stocks.');
+ return {t,uid:me.id,company:cs[0]};
+}
 async function spLoadSecureProducts(){
- const box=$('spSecureProducts');if(!box)return;
- box.textContent='Chargement des produits cloud…';
+ const box=$('spSecureProducts');if(!box)return;box.textContent='Chargement des produits cloud…';
  try{
-  const t=await token(),me=await request('/auth/v1/user','GET',null,t);
-  if(!me.id||me.id!==user?.id)throw Error('Identité de session non vérifiée.');
-  const companies=await request('/rest/v1/companies?select=id,name&order=created_at.asc','GET',null,t);
-  if(companies.length!==1){box.textContent=companies.length?'Plusieurs entreprises : sélection explicite nécessaire avant accès aux stocks.':'Aucune entreprise associée à ce compte.';return}
-  const c=companies[0];
-  const products=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(c.id)+'&order=name.asc','GET',null,t);
-  if(user?.id!==me.id)throw Error('Compte changé pendant le chargement.');
-  box.replaceChildren();const h=document.createElement('p');h.textContent='Entreprise : '+c.name+' — '+products.length+' produit(s) cloud';box.append(h);
-  for(const p of products){const line=document.createElement('p');line.textContent=p.name+' — '+p.quantity+' unité(s)'+(p.sku?' · '+p.sku:'');box.append(line)}
-  if(!products.length){const empty=document.createElement('p');empty.textContent='Aucun produit cloud pour cette entreprise. Les stocks de démonstration du navigateur ne sont pas synchronisés.';box.append(empty)}
- }catch(e){box.textContent='Lecture cloud impossible : '+e.message}
+ const {t,uid,company}=await spCloudContext();spCloudCompanyId=company.id;
+ const ps=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(company.id)+'&order=name.asc','GET',null,t);
+ if(user?.id!==uid)throw Error('Compte changé pendant le chargement.');
+ box.replaceChildren();const heading=document.createElement('p');heading.textContent='Entreprise : '+company.name+' — '+ps.length+' produit(s)';box.append(heading);
+ if(!ps.length){const p=document.createElement('p');p.textContent='Aucun produit cloud. Les données locales historiques ne sont pas transférées.';box.append(p)}
+ for(const p of ps){
+ const row=document.createElement('div');row.className='actions';row.style.margin='8px 0';
+ const label=document.createElement('span');label.textContent=p.name+' · '+p.quantity+' unité(s)'+(p.sku?' · '+p.sku:'');
+ const edit=document.createElement('button');edit.className='btn';edit.type='button';edit.textContent='Modifier quantité';
+ edit.addEventListener('click',async()=>{const raw=prompt('Nouvelle quantité pour '+p.name,p.quantity);if(raw===null)return;const qty=Number(raw);if(!Number.isSafeInteger(qty)||qty<0||qty>1000000)return alert('Quantité invalide.');try{const ctx=await spCloudContext();if(ctx.uid!==uid||ctx.company.id!==company.id)throw Error('Compte ou entreprise modifié.');await request('/rest/v1/products?id=eq.'+encodeURIComponent(p.id)+'&company_id=eq.'+encodeURIComponent(company.id),'PATCH',{quantity:qty},ctx.t);await spLoadSecureProducts()}catch(e){alert('Modification impossible : '+e.message)}});
+ const del=document.createElement('button');del.className='btn';del.type='button';del.textContent='Supprimer';del.addEventListener('click',async()=>{if(!confirm('Supprimer définitivement '+p.name+' du stock cloud ?'))return;try{const ctx=await spCloudContext();if(ctx.uid!==uid||ctx.company.id!==company.id)throw Error('Compte ou entreprise modifié.');await request('/rest/v1/products?id=eq.'+encodeURIComponent(p.id)+'&company_id=eq.'+encodeURIComponent(company.id),'DELETE',null,ctx.t);await spLoadSecureProducts()}catch(e){alert('Suppression impossible : '+e.message)}});
+ row.append(label,edit,del);box.append(row)
+ }
+ }catch(e){spCloudCompanyId=null;box.textContent='Lecture cloud impossible : '+e.message}
+}
+async function spAddCloudProduct(){
+ const name=$('spCloudProductName').value.trim(),sku=$('spCloudProductSku').value.trim(),quantity=Number($('spCloudProductQty').value),price=Number($('spCloudProductPrice').value);
+ if(!name||name.length>250||sku.length>120||!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000||!Number.isFinite(price)||price<0||price>100000000)throw Error('Vérifiez le nom, la référence, la quantité et le prix.');
+ const {t,company}=await spCloudContext();
+ await request('/rest/v1/products','POST',{company_id:company.id,name,sku:sku||null,quantity,min_quantity:0,unit_price:price},t);
+ $('spCloudProductName').value='';$('spCloudProductSku').value='';await spLoadSecureProducts();
 }
 (function spSecureInventoryUI(){
- const host=$('spCloudConnected');if(!host)return;
- const section=document.createElement('section');section.className='card';section.style.marginTop='16px';
- const heading=document.createElement('h3');heading.textContent='Inventaire cloud sécurisé — lecture seule';
- const info=document.createElement('p');info.textContent='Affiche uniquement les produits autorisés par Supabase pour le compte connecté. Aucun transfert automatique depuis le stock local.';
- const btn=document.createElement('button');btn.className='btn';btn.type='button';btn.textContent='Charger mes produits cloud';btn.addEventListener('click',spLoadSecureProducts);
- const list=document.createElement('div');list.id='spSecureProducts';section.append(heading,info,btn,list);host.append(section);
+ const host=$('spCloudConnected');if(!host)return;const section=document.createElement('section');section.className='card';section.style.marginTop='16px';
+ const heading=document.createElement('h3');heading.textContent='Inventaire cloud sécurisé';
+ const info=document.createElement('p');info.textContent='Produits séparés par entreprise via Supabase. Les anciens stocks locaux restent inchangés et ne sont pas importés automatiquement.';
+ const name=document.createElement('input');name.id='spCloudProductName';name.className='field';name.placeholder='Nom du produit';
+ const sku=document.createElement('input');sku.id='spCloudProductSku';sku.className='field';sku.placeholder='Référence facultative';
+ const qty=document.createElement('input');qty.id='spCloudProductQty';qty.className='field';qty.type='number';qty.min='0';qty.value='1';
+ const price=document.createElement('input');price.id='spCloudProductPrice';price.className='field';price.type='number';price.min='0';price.step='0.01';price.value='0';
+ const add=document.createElement('button');add.className='btn';add.type='button';add.textContent='Ajouter au stock cloud';add.addEventListener('click',async()=>{add.disabled=true;try{await spAddCloudProduct()}catch(e){alert('Ajout impossible : '+e.message)}finally{add.disabled=false}});
+ const reload=document.createElement('button');reload.className='btn';reload.type='button';reload.textContent='Actualiser mon stock cloud';reload.addEventListener('click',spLoadSecureProducts);
+ const list=document.createElement('div');list.id='spSecureProducts';section.append(heading,info,name,sku,qty,price,add,reload,list);host.append(section);
 })();
 async function companies(){const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.')}
 function toggleRecovery(open){$('spRecoveryForm').hidden=!open;$('spForgotPassword').setAttribute('aria-expanded',String(open));if(open){$('spRecoveryEmail').value=$('spAuthEmail').value.trim();$('spRecoveryEmail').focus()}else $('spRecoveryStatus').textContent=''}
