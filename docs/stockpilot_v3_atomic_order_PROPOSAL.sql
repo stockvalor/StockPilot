@@ -1,5 +1,7 @@
 -- PROPOSITION NON APPLIQUÉE : StockPilot V6, création atomique et idempotente.
 -- Déployer uniquement après validation sur une base de test isolée.
+-- IMPORTANT : brouillon non testé dynamiquement ; ne pas exécuter en production.
+-- Rejeu : ne renvoie que les commandes confirmées et appartenant au demandeur.
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS client_request_id uuid;
 CREATE UNIQUE INDEX IF NOT EXISTS stockpilot_orders_company_request_unique
   ON public.orders(company_id,client_request_id)
@@ -16,6 +18,8 @@ DECLARE
   v_order uuid;
   v_expected jsonb;
   v_actual jsonb;
+  v_existing_status text;
+  v_existing_owner uuid;
   v_line jsonb;
 BEGIN
   IF v_uid IS NULL THEN RAISE EXCEPTION 'Authentication required'; END IF;
@@ -56,9 +60,14 @@ BEGIN
     RETURNING id INTO v_order;
 
   IF v_order IS NULL THEN
-    SELECT id INTO v_order FROM public.orders
-      WHERE company_id=v_company AND client_request_id=p_request_id;
+    SELECT id,status,created_by INTO v_order,v_existing_status,v_existing_owner
+      FROM public.orders
+      WHERE company_id=v_company AND client_request_id=p_request_id
+      FOR UPDATE;
     IF v_order IS NULL THEN RAISE EXCEPTION 'Retry request'; END IF;
+    IF v_existing_owner IS DISTINCT FROM v_uid OR v_existing_status <> 'confirmed' THEN
+      RAISE EXCEPTION 'Existing request is not an owned confirmed order';
+    END IF;
     SELECT jsonb_agg(jsonb_build_object('id',i.product_id,'qty',i.quantity)
                      ORDER BY i.product_id)
       INTO v_actual FROM public.order_items i WHERE i.order_id=v_order;
