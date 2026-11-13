@@ -6,14 +6,14 @@ const start=html.indexOf('async function receiveCloudOrder(');
 const end=html.indexOf('\nasync function cloudOrderHistory(',start);
 assert.ok(start>=0&&end>start,'Receipt handler not found');
 const source=html.slice(start,end);
-let calls=[],lookups=[],confirms=0,alerts=[],reloads=0,account={id:'account-a'},switchOnLookup=false,switchOnToken=false,switchOnRpc=false;
+let calls=[],lookups=[],confirms=0,alerts=[],reloads=0,account={id:'account-a'},switchOnLookup=false,switchOnToken=false,switchOnRpc=false,tokenCalls=0;
 let lookupResponse=[],rpcResponse={status:'received'};
 const company={id:'company-a'};
 const order={id:'order-a',company_id:'company-a',status:'confirmed',stock_flow:'inbound'};
 const sandbox={
  Error,Array,encodeURIComponent,
  get user(){return account},access:true,
- token:async()=>{if(switchOnToken)account={id:'account-b'};return 'test-token'},
+ token:async()=>{tokenCalls++;if(switchOnToken&&tokenCalls===2)account={id:'account-b'};return 'test-token'},
  request:async(path,method)=>{calls.push({path,method});if(method==='POST'&&switchOnRpc)account={id:'account-b'};if(method==='GET'&&switchOnLookup)account={id:'account-b'};return path.includes('/stockpilot_receipts?')?lookupResponse:rpcResponse},
  confirm:()=>{confirms++;return true},
  alert:(msg)=>alerts.push(msg),
@@ -53,7 +53,7 @@ const receive=sandbox.receiveCloudOrder;
  const beforeLookupPosts=calls.filter(x=>x.method==='POST').length;
  await assert.rejects(receive(company,order),/Compte modifié/);
  assert.equal(calls.filter(x=>x.method==='POST').length,beforeLookupPosts,'Switch during receipt lookup must block POST');
- switchOnLookup=false;account={id:'account-a'};switchOnToken=true;
+ switchOnLookup=false;account={id:'account-a'};tokenCalls=0;switchOnToken=true;
  await assert.rejects(receive(company,order),/Compte modifié avant réception/);
  assert.equal(calls.filter(x=>x.method==='POST').length,beforeLookupPosts,'Switch before receipt RPC must block POST');
  switchOnToken=false;account={id:'account-a'};switchOnRpc=true;rpcResponse={status:'received'};
