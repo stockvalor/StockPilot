@@ -5,15 +5,15 @@ const html=fs.readFileSync('index.html','utf8');
 const start=html.indexOf('async function createCloudProduct(');
 const end=html.indexOf('\nasync function changeCloudQuantity(',start);
 assert.ok(start>=0&&end>start,'Cloud product creation handler not found');
-let response=[],posts=0,reloads=0,account={id:'account-a'};
+let response=[],posts=0,reloads=0,account={id:'account-a'},switchOnToken=false,switchOnRequest=false;
 const validId='11111111-1111-4111-8111-111111111111';
 const fields={name:'Fictitious product',sku:'TEST',quantity:2,min_quantity:1,unit_price:1.5};
 const sandbox={
  Error,Array,
  get user(){return account},
  access:true,
- token:async()=> 'test-token',
- request:async()=>{posts++;return response},
+ token:async()=>{if(switchOnToken)account={id:'account-b'};return 'test-token'},
+ request:async()=>{posts++;if(switchOnRequest)account={id:'account-b'};return response},
  loadCloudStock:async()=>{reloads++}
 };
 vm.createContext(sandbox);
@@ -34,5 +34,15 @@ const create=sandbox.createCloudProduct;
  account=null;
  await assert.rejects(create('company-a',fields),/Connexion nécessaire/);
  assert.equal(posts,postsBefore,'Logged-out user must not create product');
- console.log('PASS: missing response, wrong company, invalid UUID, confirmed creation, logged-out user');
+ account={id:'account-a'};
+ switchOnToken=true;
+ await assert.rejects(create('company-a',fields),/Compte modifié avant création/);
+ assert.equal(posts,postsBefore,'Account switch before POST must block write');
+ switchOnToken=false;
+ account={id:'account-a'};
+ switchOnRequest=true;
+ await assert.rejects(create('company-a',fields),/compte a changé pendant la création/);
+ assert.equal(reloads,1,'Account switch after POST must not refresh old account');
+ switchOnRequest=false;
+ console.log('PASS: missing response, wrong company, invalid UUID, confirmed creation, logged-out user, account switch before and after request');
 })().catch(e=>{console.error(e);process.exitCode=1});
