@@ -23,6 +23,12 @@ test('Chromium bureau et mobile, compte, stock, seuils, commandes et scan', asyn
   await page.route(/https:\/\/world\./,route=>route.fulfill({json:{status:0}}));
   const products={A:[],B:[{id:'b',name:'Produit B',quantity:8,min_quantity:1,unit_price:1,sku:'SKU-B'}]};
   const orders=[];
+  let backupValid=true;
+  const backup={id:'backupA',created_at:'2026-11-13'};
+  let logoutPending=false;
+  let finishLogout;
+  const logoutGate=new Promise(resolve=>{finishLogout=resolve;});
+  t.after(finishLogout);
   await page.route('https://supabase.test/**',async route=>{
     const request=route.request();
     const path=new URL(request.url());
@@ -33,7 +39,21 @@ test('Chromium bureau et mobile, compte, stock, seuils, commandes et scan', asyn
       const account=data.email.startsWith('a')?'A':'B';
       return route.fulfill({json:{access_token:'token'+account,refresh_token:'refresh'+account,user:{id:account,email:data.email}}});
     }
-    if(path.pathname==='/auth/v1/logout')return route.fulfill({json:{}});
+    if(path.pathname==='/auth/v1/logout'){
+      if(uid==='A'){logoutPending=true;await logoutGate;}
+      return route.fulfill({json:{}});
+    }
+    if(path.pathname.endsWith('/stockpilot_backups')){
+      assert.equal(path.searchParams.get('company_id'),'eq.company'+uid);
+      if(uid!=='A')return route.fulfill({json:[]});
+      return route.fulfill({json:path.searchParams.get('select').startsWith('payload')?
+        [{payload:{format:'stockpilot-products-v1',company_id:'companyA',products:[{unit_price:1.20}]},checksum:'stored-checksum'}]:[backup]});
+    }
+    if(path.pathname.endsWith('/stockpilot_preview_backup')){
+      assert.equal(uid,'A');
+      assert.equal(data.p_backup_id,backup.id);
+      return route.fulfill({json:[{backup_id:backup.id,company_id:'companyA',checksum_valid:backupValid,product_count:1}]});
+    }
     if(path.pathname==='/auth/v1/user')return route.fulfill({json:{id:uid}});
     if(path.pathname.endsWith('/companies'))return route.fulfill({json:[{id:'company'+uid,name:'Entreprise '+uid}]});
     if(path.pathname.endsWith('/products')){
@@ -96,10 +116,27 @@ test('Chromium bureau et mobile, compte, stock, seuils, commandes et scan', asyn
   await page.waitForFunction(()=>document.querySelector('#orderHistory').textContent.includes('Validée'));
   assert.equal(orders.length,1);
   await go('account');
+  await page.locator('#spCloudBackupList').click();
+  const verify=page.getByRole('button',{name:'Vérifier la copie',exact:true});
+  await verify.click();
+  await page.waitForFunction(()=>document.querySelector('#spCloudBackupStatus').textContent.includes('1 produit'));
+  backupValid=false;
+  await verify.click();
+  await page.waitForFunction(()=>document.querySelector('#spCloudBackupStatus').textContent.includes('Empreinte de sauvegarde invalide'));
+  backupValid=true;
+  const downloadPromise=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Télécharger JSON',exact:true}).click();
+  const download=await downloadPromise;
+  assert.equal(download.suggestedFilename(),'StockPilot-cloud-backupA.json');
+  assert.equal(JSON.parse(await readFile(await download.path(),'utf8')).company_id,'companyA');
   await page.locator('#spSignout').click();
+  assert.equal(logoutPending,true);
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('sp-v6-candidate-session')),null);
+  assert.doesNotMatch(await text('spSecureProducts'),/Produit A test/);
   await page.waitForFunction(()=>document.querySelector('#spDashboardSource').textContent==='Inventaire local');
   await login('b@example.test');
   await page.waitForFunction(()=>document.querySelector('#spSecureProducts').textContent.includes('Produit B'));
+  finishLogout();
   assert.equal(await text('kpiLow'),'0');
   assert.doesNotMatch(await text('orderHistory'),/Validée ·/);
   assert.doesNotMatch(await text('spDashboardAlerts'),/Produit A test/);
