@@ -521,7 +521,7 @@ async function changeCloudQuantity(companyId,id,quantity,expectedQuantity){
  if(identity!==user?.id||!access)throw Error('Compte modifié avant mise à jour : aucune modification envoyée.');
  const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&company_id=eq.'+encodeURIComponent(companyId)+'&quantity=eq.'+encodeURIComponent(expectedQuantity)+'&select=id,company_id,quantity','PATCH',{quantity},t,{Prefer:'return=representation'});
  if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la modification. Reconnectez-vous pour vérifier le résultat.');
- if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].company_id!==companyId||changed[0].quantity!==quantity)throw Error('Modification non confirmée : le stock a peut-être changé entre-temps. Actualisez avant de réessayer.');
+ if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].company_id!==companyId||changed[0].quantity!==quantity){await loadCloudStock();throw Error('Modification non confirmée : stock rechargé depuis le serveur. Vérifiez la quantité actuelle avant de réessayer.')}
  await loadCloudStock();
 }
 function cloudForm(company){
