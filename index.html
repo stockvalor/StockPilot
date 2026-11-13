@@ -535,9 +535,11 @@ async function createCloudDraft(company,product,quantity){
  const identity=user?.id;if(!identity||!access)throw Error('Connectez-vous.');
  if(!company?.id||!product?.id||product.company_id!==company.id)throw Error('Produit et entreprise incohérents.');
  if(!confirm('Créer un brouillon de commande pour '+quantity+' unité(s) de « '+product.name+' » dans « '+company.name+' » ? Aucun stock ne sera modifié.'))return;
+ const draftToken=await token();
+ if(identity!==user?.id||!access)throw Error('Compte modifié avant création : aucune commande envoyée.');
  let orderId;
  try{
-  orderId=await request('/rest/v1/rpc/stockpilot_v2_create_order','POST',{p_lines:[{id:product.id,qty:quantity}]},await token());
+  orderId=await request('/rest/v1/rpc/stockpilot_v2_create_order','POST',{p_lines:[{id:product.id,qty:quantity}]},draftToken);
  }catch(err){throw Error('Création non confirmée : '+err.message+'. Vérifiez l’historique avant de réessayer.')}
  if(identity!==user?.id||!access)throw Error('Compte modifié pendant la création : vérifiez le brouillon après reconnexion.');
  if(typeof orderId!=='string'||!/^[0-9a-f-]{36}$/i.test(orderId))throw Error('Réponse serveur inattendue : vérifiez l’historique avant de réessayer.');
