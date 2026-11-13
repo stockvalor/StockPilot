@@ -637,7 +637,7 @@ async function loadCloudStock(){
    const history=await cloudOrderHistory(company,version,identity);if(!history)return;staged.append(history);
   }
   if(version!==stockRequestVersion||identity!==user?.id||!access)return;
-  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. La préparation manuelle crée uniquement des brouillons cloud après confirmation ; aucun stock n'est modifié. Les commandes IA et le scanner restent en démonstration.';staged.append(note);
+  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. La préparation manuelle crée uniquement des brouillons cloud après confirmation ; aucun stock ne change à cette étape. Les commandes IA et le scanner restent en démonstration.';staged.append(note);
   if(version!==stockRequestVersion||identity!==user?.id||!access)return;
   panel.replaceChildren(staged);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
