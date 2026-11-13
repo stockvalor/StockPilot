@@ -555,7 +555,7 @@ async function createCloudDraft(company,product,quantity){
  await loadCloudStock();
 }
 async function confirmCloudOrder(company,order){
- if(!user?.id||!access||order.company_id!==company.id||order.status!=='draft'||order.stock_flow!=='inbound')throw Error('Cette commande ne peut pas être confirmée.');
+ if(!user?.id||!access||!company||!order||!/^([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(String(order.id||''))||order.company_id!==company.id||order.status!=='draft'||order.stock_flow!=='inbound')throw Error('Cette commande ne peut pas être confirmée.');
  const identity=user.id;
  if(!confirm('Confirmer ce brouillon de commande entrante ? Aucun stock ne sera ajouté avant une réception séparée.'))return;
  const confirmationToken=await token();
