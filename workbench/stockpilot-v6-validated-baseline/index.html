@@ -537,6 +537,7 @@ async function spLoadSecureProducts(){
  box.replaceChildren();const heading=document.createElement('p');heading.textContent='Entreprise : '+company.name+' — '+ps.length+' produit(s)';box.append(heading);
  if(!ps.length){const p=document.createElement('p');p.textContent='Aucun produit cloud. Les données locales historiques ne sont pas transférées.';box.append(p)}
  await spRefreshCloudOrderView();
+ if(user?.id!==uid||spCloudCompanyId!==company.id)return;
  for(const p of ps){
  const row=document.createElement('div');row.className='actions';row.style.margin='8px 0';
  const label=document.createElement('span');label.textContent=p.name+' · '+p.quantity+' unité(s)'+(p.sku?' · '+p.sku:'');
@@ -545,7 +546,7 @@ async function spLoadSecureProducts(){
  const del=document.createElement('button');del.className='btn';del.type='button';del.textContent='Supprimer';del.addEventListener('click',async()=>{if(!confirm('Supprimer définitivement '+p.name+' du stock cloud ?'))return;try{const ctx=await spCloudContext();if(ctx.uid!==uid||ctx.company.id!==company.id)throw Error('Compte ou entreprise modifié.');await request('/rest/v1/products?id=eq.'+encodeURIComponent(p.id)+'&company_id=eq.'+encodeURIComponent(company.id),'DELETE',null,ctx.t);await spLoadSecureProducts()}catch(e){alert('Suppression impossible : '+e.message)}});
  row.append(label,edit,del);box.append(row)
  }
- }catch(e){spCloudCompanyId=null;box.textContent='Lecture cloud impossible : '+e.message}
+ }catch(e){if(!access||!user?.id)return;spCloudCompanyId=null;box.textContent='Lecture cloud impossible : '+e.message}
 }
 async function spConfirmCloudProduct(){
  const get=id=>document.getElementById(id).value.trim();
