@@ -22,7 +22,7 @@ Ouvrir [la candidate locale](http://localhost:8080/) dans un profil navigateur d
 
 | Nº | Parcours | Statut | Vérification ou reprise |
 |---:|---|---|---|
-| 1 | Inscription et connexion | BLOQUÉ | Inscrire deux utilisateurs fictifs dans Supabase isolé, confirmer les e-mails et se connecter. Vérifier aussi la récupération du mot de passe. |
+| 1 | Inscription et connexion | RÉUSSI DOM avec API simulée / BLOQUÉ Supabase | Inscrire deux utilisateurs fictifs dans Supabase isolé, confirmer les e-mails et se connecter. Vérifier aussi la récupération du mot de passe. |
 | 2 | Création d’un produit | RÉUSSI Chromium avec API simulée / BLOQUÉ Supabase | Créer une référence unique avec quantité 2 et seuil 3, confirmer et vérifier la ligne via le compte propriétaire. |
 | 3 | Modification d’un produit | RÉUSSI Chromium avec API simulée / BLOQUÉ Supabase | Passer la quantité de 2 à 3, puis le seuil de 3 à 4. Vérifier la référence et les alertes. Tester aussi annulation et suppression d’une référence sans commande associée. |
 | 4 | Actualisation et persistance | RÉUSSI Chromium avec API simulée / BLOQUÉ Supabase | Actualiser puis ouvrir une seconde session et vérifier les données cloud du compte. |
@@ -33,13 +33,13 @@ Ouvrir [la candidate locale](http://localhost:8080/) dans un profil navigateur d
 | 9 | Seuils d’alerte | RÉUSSI local | DOM exécuté. Une référence à 2 avec un seuil de 3 déclenche une alerte. Elle disparaît à 3. Le changement de compte efface les chiffres et alertes précédents. |
 | 10 | Scan EAN et QR | RÉUSSI Chromium / NON TESTÉ caméra | Images EAN-13 `5901234123457` et QR `SP-TEST-QR` décodées avec html5-qrcode 2.3.8. Refaire avec l’appareil photo d’un téléphone. |
 | 11 | Reconnaissance de produit par photo | ÉCHEC | Le code décode les codes-barres et interroge des catalogues par identifiant. Reconnaissance visuelle d’un produit sans code à implémenter puis tester. |
-| 12 | Autorisations et sécurité | RÉUSSI local / BLOQUÉ Supabase | PostgreSQL local. Refus anonyme et accès croisés sur produits, commandes, lignes et réceptions. Rejouer sur la Data API isolée et couvrir aussi les RPC historiques et la restauration. |
+| 12 | Autorisations et sécurité | RÉUSSI local / BLOQUÉ Supabase | PostgreSQL local. Refus anonyme et accès croisés sur produits, commandes, lignes et réceptions. Rejouer sur la Data API isolée et couvrir aussi les RPC historiques et la restauration. En local, la lecture croisée des sauvegardes et les demandes de restauration à partir d’une sauvegarde étrangère sont refusées. |
 | 13 | Mobile | RÉUSSI Chromium émulé / NON TESTÉ appareil réel | Menu ouvert, navigation vers Mes stocks et fermeture automatique à 390 × 844. Vérifier caméra et menu sur téléphone physique. |
 | 14 | Ordinateur | RÉUSSI Chromium | Parcours inventaire et commandes à 1366 × 768 avec API simulée. Téléchargement des copies cloud et restauration à tester. |
 
 ## Résultats exécutés
 
-`npm test` avec Chromium Headless Shell et le lecteur html5-qrcode 2.3.8 : 3 suites réussies, 0 échec. Les 16 tests existants de signature des licences ont également réussi. Le fichier racine servi par GitHub Pages correspond octet pour octet à celui de `main` à `6177895`. La préversion publique de référence correspond également au dépôt.
+`npm test` avec Chromium Headless Shell et le lecteur html5-qrcode 2.3.8 : 4 tests réussis, 0 échec. Les 16 tests existants de signature des licences ont également réussi. Régression Auth vérifiée avec une inscription en attente du compte A, une connexion du compte B puis une déconnexion distante retardée. Le compte B ne reçoit pas l’entreprise saisie par A. La session locale disparaît immédiatement et une reconnexion reste active après le retour tardif de la requête de déconnexion. Le fichier racine servi par GitHub Pages correspond octet pour octet à celui de `main` à `6177895`. La préversion publique de référence correspond également au dépôt.
 
 ## Blocages de sortie
 

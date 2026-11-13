@@ -556,7 +556,26 @@ async function request(path,method='GET',body=null,token=null,returnRows=false){
  throw Error(message+' (HTTP '+r.status+')');
  }return data}
 function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;if(!spRecoveryMode){try{sessionStorage.setItem('sp-v6-candidate-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}}render()}
-async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const before=refresh;const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:before});if(refresh!==before)throw Error('Session modifiée.');session(d);return access}
+let authGeneration=0;
+let refreshInFlight=null;
+async function token(){
+ if(!access)throw Error('Connectez-vous.');
+ if(Date.now()<expiry)return access;
+ if(!refresh)throw Error('Session expirée, reconnectez-vous.');
+ const generation=authGeneration;
+ if(refreshInFlight?.generation!==generation){
+  const refreshToken=refresh;
+  const operation=request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refreshToken}).then(data=>{
+   if(generation!==authGeneration)throw Error('Session modifiée.');
+   session(data);
+   return access;
+  });
+  refreshInFlight={generation,operation};
+ }
+ const {operation}=refreshInFlight;
+ try{return await operation}
+ finally{if(refreshInFlight?.operation===operation)refreshInFlight=null}
+}
 function render(){$('spCloudGuest').hidden=!!access&&!spRecoveryMode;$('spCloudConnected').hidden=!access||spRecoveryMode;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){
  spCloudLoadGeneration++;spCloudViewGeneration++;spCloudCompanyId=null;
  for(const id of ['spCloudCompanies','spSecureProducts','spCloudBackupEntries'])$(id)?.replaceChildren();
@@ -566,9 +585,11 @@ function render(){$('spCloudGuest').hidden=!!access&&!spRecoveryMode;$('spCloudC
 async function act(fn){try{status('Traitement en cours…');await fn()}catch(e){status('Erreur : '+e.message)}}
 let spCloudCompanyId=null;let spCloudLoadGeneration=0;let spCloudViewGeneration=0;
 async function spCloudContext(){
+ const generation=authGeneration;
  const t=await token(),me=await request('/auth/v1/user','GET',null,t);
- if(!me.id||me.id!==user?.id)throw Error('Identité non vérifiée.');
+ if(generation!==authGeneration||!me.id||me.id!==user?.id)throw Error('Identité non vérifiée.');
  const cs=await request('/rest/v1/companies?select=id,name&order=created_at.asc','GET',null,t);
+ if(generation!==authGeneration)throw Error('Session modifiée.');
  if(cs.length!==1)throw Error(cs.length?'Plusieurs entreprises : sélection explicite nécessaire.':'Créez votre entreprise avant de gérer les stocks.');
  return {t,uid:me.id,company:cs[0]};
 }
@@ -725,7 +746,7 @@ async function spAddCloudProduct(){
  const reload=document.createElement('button');reload.className='btn';reload.type='button';reload.textContent='Actualiser mon stock cloud';reload.addEventListener('click',spLoadSecureProducts);
  const list=document.createElement('div');list.id='spSecureProducts';section.append(heading,info,warning,name,sku,qty,price,add,reload,list);host.append(section);
 })();
-async function companies(){const generation=spInventoryGeneration;const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());if(generation!==spInventoryGeneration)return;const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.')}
+async function companies(){const generation=spInventoryGeneration;const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());if(generation!==spInventoryGeneration)return;const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return d}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.');return d}
 function toggleRecovery(open){$('spRecoveryForm').hidden=!open;$('spForgotPassword').setAttribute('aria-expanded',String(open));if(open){$('spRecoveryEmail').value=$('spAuthEmail').value.trim();$('spRecoveryEmail').focus()}else $('spRecoveryStatus').textContent=''}
 $('spForgotPassword').addEventListener('click',()=>toggleRecovery($('spRecoveryForm').hidden));
 $('spCancelRecovery').addEventListener('click',()=>toggleRecovery(false));
@@ -759,9 +780,49 @@ $('spSaveNewPassword').addEventListener('click',()=>act(async()=>{
  $('spNewPasswordPanel').scrollIntoView({block:'center'});
  status('Lien de récupération validé. Définissez un nouveau mot de passe. Votre compte ne sera accessible qu’après une nouvelle connexion.');
 })();
-$('spSignup').addEventListener('click',()=>act(async()=>{const email=$('spAuthEmail').value.trim(),password=$('spAuthPassword').value,name=$('spAuthCompany').value.trim();if(!email||password.length<8||name.length<2)throw Error('E-mail, mot de passe (8 caractères minimum) et entreprise requis.');try{sessionStorage.setItem('sp-v6-candidate-pending-company',name)}catch(e){}const d=await request('/auth/v1/signup','POST',{email,password});if(d.access_token){session(d);await createCompany(name);status('Compte créé et entreprise enregistrée.')}else status('Inscription demandée : vérifiez votre e-mail puis connectez-vous. Le nom de société sera à enregistrer après connexion.')}));
-$('spSignin').addEventListener('click',()=>act(async()=>{const d=await request('/auth/v1/token?grant_type=password','POST',{email:$('spAuthEmail').value.trim(),password:$('spAuthPassword').value});session(d);$('spAuthPassword').value='';await companies();const pending=sessionStorage.getItem('sp-v6-candidate-pending-company');if(pending){const existing=await request('/rest/v1/companies?select=id&limit=1','GET',null,await token());if(!existing.length){await createCompany(pending)}sessionStorage.removeItem('sp-v6-candidate-pending-company')}}));
-async function createCompany(name){if(!name||name.length<2)throw Error('Saisissez le nom de votre entreprise.');const t=await token();await request('/rest/v1/companies','POST',{name,owner_user_id:user.id},t);await companies()}
+const pendingCompanyKey='sp-v6-candidate-pending-company';
+const normalizeEmail=email=>email.trim().toLowerCase();
+$('spSignup').addEventListener('click',()=>act(async()=>{
+ const email=normalizeEmail($('spAuthEmail').value),password=$('spAuthPassword').value,name=$('spAuthCompany').value.trim();
+ if(!email||password.length<8||name.length<2||name.length>160)throw Error('E-mail, mot de passe (8 caractères minimum) et entreprise (2 à 160 caractères) requis.');
+ const generation=++authGeneration;
+ const data=await request('/auth/v1/signup','POST',{email,password});
+ if(generation!==authGeneration)return;
+ $('spAuthPassword').value='';
+ if(data.access_token){
+  session(data);
+  await createCompany(name);
+  if(generation===authGeneration)status('Compte créé et entreprise enregistrée.');
+ }else{
+  sessionStorage.setItem(pendingCompanyKey,JSON.stringify({email,name}));
+  status('Inscription demandée. Confirmez votre e-mail, puis connectez-vous.');
+ }
+}));
+$('spSignin').addEventListener('click',()=>act(async()=>{
+ const generation=++authGeneration;
+ const email=normalizeEmail($('spAuthEmail').value);
+ const data=await request('/auth/v1/token?grant_type=password','POST',{email,password:$('spAuthPassword').value});
+ if(generation!==authGeneration)return;
+ session(data);
+ $('spAuthPassword').value='';
+ const existing=await companies();
+ if(generation!==authGeneration||!existing)return;
+ let pending;
+ try{pending=JSON.parse(sessionStorage.getItem(pendingCompanyKey)||'null')}catch{}
+ if(pending?.email!==email||normalizeEmail(data.user?.email||'')!==email)return;
+ if(!existing.length)await createCompany(pending.name);
+ if(generation===authGeneration)sessionStorage.removeItem(pendingCompanyKey);
+}));
+async function createCompany(name){
+ if(typeof name!=='string'||name.length<2||name.length>160)throw Error('Saisissez le nom de votre entreprise.');
+ const generation=authGeneration,uid=user?.id;
+ const t=await token();
+ if(generation!==authGeneration||!uid||uid!==user?.id)throw Error('Session modifiée.');
+ await request('/rest/v1/companies','POST',{name,owner_user_id:uid},t);
+ if(generation!==authGeneration)return;
+ await companies();
+ await spLoadSecureProducts();
+}
 $('spCreateCompany').addEventListener('click',()=>{
  $('spCompanyCreatePanel').hidden=false;
  $('spCompanyCreateStatus').textContent='Vérifiez le nom, puis confirmez la création.';
@@ -787,7 +848,18 @@ $('spCompanyConfirm').addEventListener('click',async()=>{
 });
 $('spLoadCompanies').addEventListener('click',()=>act(companies));
 $('spConnectedSavePassword').addEventListener('click',()=>act(async()=>{const pw=$('spConnectedNewPassword').value;if(pw.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password:pw},await token());$('spConnectedNewPassword').value='';status('Mot de passe mis à jour. Vous pouvez désormais vous connecter avec le nouveau mot de passe.');}));
-$('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v6-candidate-session')}catch(e){}render();status('Déconnecté. Les données locales V6.1 sont inchangées.')}}));
+$('spSignout').addEventListener('click',()=>{
+ const previousAccess=access;
+ const generation=++authGeneration;
+ access=refresh=user=null;
+ expiry=0;
+ try{sessionStorage.removeItem('sp-v6-candidate-session')}catch{}
+ render();
+ status('Déconnecté.');
+ if(previousAccess)request('/auth/v1/logout','POST',{},previousAccess).catch(()=>{
+  if(generation===authGeneration)status('Déconnecté sur cet appareil. La révocation de la session distante reste à confirmer.');
+ });
+});
 
 /* V6.8 — Copies manuelles immuables, aucune restauration automatique */
 const BACKUP_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];

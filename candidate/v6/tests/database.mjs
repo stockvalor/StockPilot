@@ -38,6 +38,15 @@ test('Deux propriétaires : RLS, commandes et réceptions dans PostgreSQL local'
     assert.equal((await submit(lines)).rows[0].id,order);
     await assert.rejects(submit([{id:productA,qty:4}]),/different order lines/);
     assert.deepEqual((await db.query('select status from orders where id=$1',[order])).rows,[{status:'confirmed'}]);
+    const {id:backup}=(await db.query(
+      'insert into stockpilot_backups(company_id,payload,checksum) values ($1,$2,$3) returning id',
+      [companyA,'{"products":[]}','0'.repeat(64)]
+    )).rows[0];
+    const restoreRequest=(company,owner)=>db.query(
+      'insert into stockpilot_restore_requests(company_id,backup_id,requested_by) values ($1,$2,$3) returning id',
+      [company,backup,owner]
+    );
+    assert.equal((await restoreRequest(companyA,userA)).rows.length,1);
     await signIn(userB);
     assert.deepEqual((await getStock(productB)).rows,[{quantity:7}]);
     assert.deepEqual((await getStock(productA)).rows,[]);
@@ -46,6 +55,10 @@ test('Deux propriétaires : RLS, commandes et réceptions dans PostgreSQL local'
     await assert.rejects(db.query('select stockpilot_v2_receive_order($1)',[order]),/Order not found/);
     await assert.rejects(db.query('select stockpilot_v2_confirm_order($1)',[order]),/Order not found/);
     assert.notEqual((await submit([{id:productB,qty:1}])).rows[0].id,order);
+    assert.deepEqual((await db.query('select id from stockpilot_backups where id=$1',[backup])).rows,[]);
+    assert.deepEqual((await db.query('select id from stockpilot_restore_requests')).rows,[]);
+    await assert.rejects(restoreRequest(companyB,userB),/row-level security/);
+    await assert.rejects(restoreRequest(companyA,userB),/row-level security/);
     await signIn(userA);
     const receive = () => db.query('select stockpilot_v2_receive_order($1) result',[order]);
     assert.equal((await receive()).rows[0].result.status,'received');
