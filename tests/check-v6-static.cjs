@@ -2,11 +2,11 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const html=fs.readFileSync('index.html','utf8');
-const scripts=[...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)];
+const scripts=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
 let checked=0;
 for(const [,attrs,source] of scripts){
- if(/\\bsrc\\s*=/.test(attrs)||!source.trim())continue;
- if(/\\btype\\s*=\\s*['\"]module['\"]/.test(attrs))continue;
+ if(/\bsrc\s*=/.test(attrs)||!source.trim())continue;
+ if(/\btype\s*=\s*['\"]module['\"]/.test(attrs))continue;
  new vm.Script(source,{filename:'index.html inline script '+(++checked)});
 }
 assert.ok(checked>0,'No inline JavaScript checked');
