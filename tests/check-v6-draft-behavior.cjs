@@ -5,14 +5,14 @@ const html=fs.readFileSync('index.html','utf8');
 const start=html.indexOf('async function createCloudDraft(');
 const end=html.indexOf('\nasync function confirmCloudOrder(',start);
 assert.ok(start>=0&&end>start,'Draft handler not found');
-let companies=[],rpcId='11111111-1111-4111-8111-111111111111',posts=0,reloads=0,confirmed=true;
+let companies=[],rpcId='11111111-1111-4111-8111-111111111111',posts=0,reloads=0,confirmed=true,account={id:'account-a'},switchOnLookup=false,switchOnRpc=false;
 const company={id:'company-a',name:'Alpha'};
 const product={id:'product-a',company_id:'company-a',name:'Test product'};
 const sandbox={
  Number,Error,Array,encodeURIComponent,
- user:{id:'account-a'},access:true,
+ get user(){return account},access:true,
  token:async()=> 'test-token',
- request:async(path,method)=>{if(method==='POST'){posts++;return rpcId}return companies},
+ request:async(path,method)=>{if(method==='POST'){posts++;if(switchOnRpc)account={id:'account-b'};return rpcId}if(switchOnLookup)account={id:'account-b'};return companies},
  confirm:()=>confirmed,
  loadCloudStock:async()=>{reloads++}
 };
@@ -41,5 +41,14 @@ const draft=sandbox.createCloudDraft;
  await draft(company,product,1);
  assert.equal(posts,2,'Only valid single-company attempts should reach RPC');
  assert.equal(reloads,1,'Confirmed draft must reload cloud stock');
- console.log('PASS: multi-company blocked, malformed lookup blocked, invalid product/quantity, cancellation, UUID and success');
+ account={id:'account-a'};
+ switchOnLookup=true;
+ await assert.rejects(draft(company,product,1),/Compte modifié pendant la vérification/);
+ assert.equal(posts,2,'Account switch during company lookup must block RPC');
+ switchOnLookup=false;
+ account={id:'account-a'};
+ switchOnRpc=true;
+ await assert.rejects(draft(company,product,1),/Compte modifié pendant la création/);
+ assert.equal(reloads,1,'Account switch during RPC must not refresh previous account');
+ console.log('PASS: multi-company, invalid responses, cancellation, UUID, success and account-switch guards');
 })().catch(e=>{console.error(e);process.exitCode=1});
