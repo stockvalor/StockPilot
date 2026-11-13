@@ -481,8 +481,26 @@ const URL='https://ieogcyuqgqmaebjkvlns.supabase.co', KEY='sb_publishable_XQnwV3
 const $=id=>document.getElementById(id);let access=null,refresh=null,expiry=0,user=null;
 const status=s=>{$('spAuthStatus').textContent=s};
 async function request(path,method='GET',body=null,token=null,extraHeaders={}){const headers={'apikey':KEY,...extraHeaders};if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Erreur HTTP '+r.status);return data}
-function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v63-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}render()}
-async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
+function session(data,skipRender=false){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v63-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}if(!skipRender)render()}
+let tokenRefreshInFlight=null;
+async function token(){
+ if(!access)throw Error('Connectez-vous.');
+ if(Date.now()<expiry)return access;
+ if(!refresh)throw Error('Session expirée, reconnectez-vous.');
+ if(!tokenRefreshInFlight){
+  const priorRefresh=refresh, priorUser=user?.id;
+  const pending=(async()=>{
+   const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:priorRefresh});
+   if(refresh!==priorRefresh||user?.id!==priorUser)throw Error('La session a changé pendant son renouvellement.');
+   if(!d.user||d.user.id!==priorUser)throw Error('Identité incohérente après renouvellement.');
+   session(d,true);
+   return access;
+  })();
+  tokenRefreshInFlight=pending;
+  pending.finally(()=>{if(tokenRefreshInFlight===pending)tokenRefreshInFlight=null}).catch(()=>{});
+ }
+ return tokenRefreshInFlight;
+}
 let stockRequestVersion=0;
 function demoIsolationNotice(){let el=$('spDemoIsolationNotice');if(el)return el;el=document.createElement('p');el.id='spDemoIsolationNotice';el.style.cssText='padding:12px;border:1px solid #d6a954;border-radius:10px;margin:12px 0';el.textContent='Attention : tableau de bord, commandes IA, scanner et indicateurs restent des démonstrations locales. Ils ne représentent pas les stocks de votre entreprise. Seul le panneau « Inventaire cloud privé » affiche les produits Supabase.';const target=$('stock');target.prepend(el);return el}
 function stockPanel(){let panel=$('spCloudStockPanel');if(panel)return panel;const section=$('stock');panel=document.createElement('div');panel.id='spCloudStockPanel';panel.className='card';panel.style.marginTop='16px';panel.setAttribute('role','status');section.prepend(panel);return panel}
