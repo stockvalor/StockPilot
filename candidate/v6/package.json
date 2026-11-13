@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.mjs",
+    "test:local": "node --test tests/database.mjs tests/interface.mjs",
+    "test:browser": "node --test tests/browser.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "bwip-js": "4.11.4",
+    "jsdom": "31.0.1",
+    "playwright": "1.62.1"
+  }
+}
