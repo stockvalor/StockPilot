@@ -20,3 +20,5 @@ jobs:
         run: node tests/check-v6-static.cjs
       - name: Test stock quantity conflict handling
         run: node tests/check-v6-behavior.cjs
+      - name: Check proposed multi-company SQL safety structure
+        run: node tests/check-v3-sql-proposal.cjs
