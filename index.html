@@ -485,6 +485,26 @@ function session(data){access=data.access_token||null;refresh=data.refresh_token
 async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
 let stockRequestVersion=0;
 function stockPanel(){let panel=$('spCloudStockPanel');if(panel)return panel;const section=$('stock');panel=document.createElement('div');panel.id='spCloudStockPanel';panel.className='card';panel.style.marginTop='16px';panel.setAttribute('role','status');section.prepend(panel);return panel}
+async function createCloudProduct(companyId,fields){
+ const t=await token();
+ await request('/rest/v1/products','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t);
+ await loadCloudStock();
+}
+async function changeCloudQuantity(id,quantity){
+ if(!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000)throw Error('Quantité invalide.');
+ await request('/rest/v1/products?id=eq.'+encodeURIComponent(id),'PATCH',{quantity},await token());
+ await loadCloudStock();
+}
+function cloudForm(company){
+ const form=document.createElement('form');form.style.margin='12px 0 24px';form.style.display='grid';form.style.gap='8px';
+ const fields=[['name','Nom du produit','text'],['sku','Référence (facultative)','text'],['quantity','Quantité','number'],['min_quantity','Seuil minimum','number'],['unit_price','Prix unitaire','number']];
+ const inputs={};
+ for(const [key,label,type] of fields){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement('input');input.className='field';input.type=type;input.required=key!=='sku';if(type==='number'){input.min='0';input.step=key==='unit_price'?'0.01':'1';input.value='0'}wrap.append(input);form.append(wrap);inputs[key]=input}
+ const button=document.createElement('button');button.className='btn main';button.type='submit';button.textContent='Ajouter à cette entreprise';form.append(button);
+ const feedback=document.createElement('p');form.append(feedback);
+ form.addEventListener('submit',async e=>{e.preventDefault();const fields={name:inputs.name.value.trim(),sku:inputs.sku.value.trim(),quantity:Number(inputs.quantity.value),min_quantity:Number(inputs.min_quantity.value),unit_price:Number(inputs.unit_price.value)};if(!fields.name||![fields.quantity,fields.min_quantity].every(x=>Number.isSafeInteger(x)&&x>=0&&x<=1000000)||!Number.isFinite(fields.unit_price)||fields.unit_price<0){feedback.textContent='Données invalides.';return}button.disabled=true;try{await createCloudProduct(company.id,fields)}catch(err){feedback.textContent='Erreur : '+err.message;button.disabled=false}});
+ return form;
+}
 function clearCloudStock(){stockRequestVersion++;const panel=stockPanel();panel.replaceChildren();panel.hidden=true;const legacy=$('stockList')?.closest('.card');if(legacy)legacy.hidden=false}
 async function loadCloudStock(){
  const version=++stockRequestVersion, identity=user?.id;
@@ -501,10 +521,16 @@ async function loadCloudStock(){
    const rows=await request('/rest/v1/products?select=id,company_id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc','GET',null,await token());
    if(version!==stockRequestVersion||identity!==user?.id||!access)return;
    const title=document.createElement('h3');title.textContent=company.name;panel.append(title);
-   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';panel.append(empty);continue}
-   for(const p of rows){const line=document.createElement('p');line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · '+p.quantity+' en stock';panel.append(line)}
+   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';panel.append(empty);panel.append(cloudForm(company));continue}
+   for(const p of rows){
+    const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
+    const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
+    const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
+    line.append(qty,save);panel.append(line)
+   }
+   panel.append(cloudForm(company));
   }
-  const note=document.createElement('p');note.textContent='Lecture sécurisée uniquement. Les commandes, le scanner et les stocks de démonstration ne sont pas synchronisés avec cet inventaire.';panel.append(note);
+  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. Les commandes et le scanner restent en mode démonstration séparé, sans synchronisation.';panel.append(note);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
 }
 function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}}
