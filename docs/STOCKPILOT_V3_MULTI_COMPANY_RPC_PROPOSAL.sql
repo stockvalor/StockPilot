@@ -45,6 +45,7 @@ BEGIN
     <> (SELECT count(DISTINCT x->>'id') FROM jsonb_array_elements(p_lines) AS x) THEN
     RAISE EXCEPTION 'Duplicate item';
   END IF;
+  -- Contrôle préalable des UUID avant conversion : aucune erreur de cast ambiguë.
   IF EXISTS (
     SELECT 1 FROM jsonb_array_elements(p_lines) AS x
     WHERE NOT EXISTS (
@@ -65,6 +66,9 @@ BEGIN
 END
 $function$;
 
+-- IMPORTANT : appliquer CREATE + REVOKE + GRANT dans UNE transaction de migration,
+-- pour éviter toute exposition temporaire aux rôles publics.
+-- Exécuter la migration uniquement après revue de sécurité et tests isolés.
 -- IMPORTANT : restreindre explicitement EXECUTE avant exposition API.
 REVOKE ALL ON FUNCTION public.stockpilot_v3_create_order(uuid,jsonb) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.stockpilot_v3_create_order(uuid,jsonb) TO authenticated;
