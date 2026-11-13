@@ -23,6 +23,16 @@ vm.createContext(sandbox);
 vm.runInContext(source,sandbox);
 const receive=sandbox.receiveCloudOrder;
 (async()=>{
+ await assert.rejects(receive(company,{...order,company_id:'company-b'}),/ne peut pas être réceptionnée/);
+ await assert.rejects(receive(company,{...order,status:'draft'}),/ne peut pas être réceptionnée/);
+ assert.equal(calls.length,0,'Invalid company or order status must not contact server');
+ sandbox.confirm=()=>{confirms++;return false};
+ lookupResponse=[];
+ await receive(company,order);
+ assert.equal(calls.filter(x=>x.method==='POST').length,0,'User cancellation must never post receipt');
+ sandbox.confirm=()=>{confirms++;return true};
+ confirms=0;
+ calls=[];
  lookupResponse=null;
  await assert.rejects(receive(company,order),/Contrôle de réception non confirmé/);
  assert.equal(calls.filter(x=>x.method==='POST').length,0,'Invalid lookup must never post receipt');
