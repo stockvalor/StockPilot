@@ -33,9 +33,5 @@ const save=sandbox.changeCloudQuantity;
  response=[{id:'product-a',company_id:'company-a',quantity:8}];
  await save('company-a','product-a',8,10);
  assert.equal(refreshCount,2,'Success must reload stock');
- currentUser={id:'account-b'};
- await assert.rejects(save('company-a','product-a',7,8),/Compte modifié|Connexion nécessaire/).catch(async()=>{
-   // A different account is allowed to request its own data; server RLS decides ownership.
- });
  console.log('PASS: stock no-op, optimistic-lock conflict and confirmed update');
 })().catch(e=>{console.error(e);process.exitCode=1});
