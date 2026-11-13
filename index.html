@@ -512,6 +512,21 @@ function cloudForm(company){
  return form;
 }
 function clearCloudStock(){stockRequestVersion++;const panel=stockPanel();panel.replaceChildren();panel.hidden=true;const legacy=$('stockList')?.closest('.card');if(legacy)legacy.hidden=false}
+async function createCloudDraft(company,product,quantity){
+ if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw Error('Quantité de commande invalide.');
+ const identity=user?.id;if(!identity||!access)throw Error('Connectez-vous.');
+ if(!confirm('Créer un brouillon de commande pour '+quantity+' unité(s) de « '+product.name+' » dans « '+company.name+' » ? Aucun stock ne sera modifié.'))return;
+ const t=await token();
+ const created=await request('/rest/v1/orders?select=id,company_id,status','POST',{company_id:company.id,status:'draft',created_by:identity},t,{Prefer:'return=representation'});
+ if(!Array.isArray(created)||created.length!==1||created[0].company_id!==company.id||created[0].status!=='draft')throw Error('Création du brouillon non confirmée.');
+ const orderId=created[0].id;
+ try{
+  const lines=await request('/rest/v1/order_items?select=id,order_id,product_id,quantity','POST',{order_id:orderId,product_id:product.id,quantity},await token(),{Prefer:'return=representation'});
+  if(!Array.isArray(lines)||lines.length!==1||lines[0].order_id!==orderId||lines[0].product_id!==product.id||lines[0].quantity!==quantity)throw Error('Ligne de commande non confirmée.');
+ }catch(err){throw Error('Brouillon '+orderId+' créé, mais ligne non confirmée : '+err.message+'. Vérifiez son état avant de réessayer.')}
+ if(identity!==user?.id||!access)throw Error('Compte modifié pendant la création : vérifiez le brouillon après reconnexion.');
+ await loadCloudStock();
+}
 async function cloudOrderHistory(company,version,identity){
  const orders=await request('/rest/v1/orders?select=id,status,created_at,stock_flow&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc&limit=30','GET',null,await token());
  if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
@@ -545,12 +560,14 @@ async function loadCloudStock(){
     const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
     const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
     const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(company.id,p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
-    line.append(qty,save);panel.append(line)
+    const draftQty=document.createElement('input');draftQty.className='field';draftQty.type='number';draftQty.min='1';draftQty.max='1000000';draftQty.step='1';draftQty.value='1';draftQty.style.maxWidth='75px';draftQty.setAttribute('aria-label','Quantité à commander pour '+p.name);
+    const draft=document.createElement('button');draft.type='button';draft.className='btn';draft.textContent='Préparer commande';draft.addEventListener('click',async()=>{draft.disabled=true;try{await createCloudDraft(company,p,Number(draftQty.value))}catch(err){alert(err.message);draft.disabled=false}});
+    line.append(qty,save,draftQty,draft);panel.append(line)
    }
    panel.append(cloudForm(company));
    const history=await cloudOrderHistory(company,version,identity);if(history)panel.append(history);
   }
-  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. L'historique cloud des commandes est consultable par entreprise. La préparation de commandes IA et le scanner restent en démonstration séparée.';panel.append(note);
+  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. La préparation manuelle crée uniquement des brouillons cloud après confirmation ; aucun stock n'est modifié. Les commandes IA et le scanner restent en démonstration.';panel.append(note);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
 }
 function render(){demoIsolationNotice();$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}const demoNotice=document.getElementById('spDemoIsolationNotice');if(demoNotice)demoNotice.hidden=!access}
