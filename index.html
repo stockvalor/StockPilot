@@ -513,8 +513,10 @@ async function cloudOrderHistory(company,version,identity){
  const box=document.createElement('div');box.style.margin='16px 0';const title=document.createElement('h3');title.textContent='Commandes cloud — '+company.name;box.append(title);
  if(!orders.length){const p=document.createElement('p');p.textContent='Aucune commande cloud pour cette entreprise.';box.append(p);return box}
  for(const order of orders){
-  const line=document.createElement('p');line.textContent=new Date(order.created_at).toLocaleString('fr-FR')+' · '+order.status+' · '+(order.stock_flow||'Mouvement non précisé');
-  box.append(line);
+  const line=document.createElement('div');line.style.margin='10px 0';const header=document.createElement('p');header.textContent=new Date(order.created_at).toLocaleString('fr-FR')+' · '+order.status+' · '+(order.stock_flow||'Mouvement non précisé');line.append(header);
+  const items=await request('/rest/v1/order_items?select=id,product_id,quantity&order_id=eq.'+encodeURIComponent(order.id)+'&limit=100','GET',null,await token());
+  if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
+  const details=document.createElement('p');details.textContent=items.length?items.length+' ligne(s) : '+items.map(x=>x.quantity+' unité(s) · réf. '+x.product_id.slice(0,8)).join(' ; '):'Aucune ligne de commande';line.append(details);box.append(line);
  }
  return box;
 }
