@@ -261,9 +261,10 @@ orderState=loadOrderState();renderInventory();renderDraft();renderSummary();rend
 </style>
 <script>
 (function(){
-const key='stockpilot-forecast-v46';
-function get(){try{return JSON.parse(localStorage.getItem(key))||{}}catch(e){return {}}}
-function put(v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){alert('Sauvegarde indisponible dans ce navigateur.')}}
+const demoForecastKey='stockpilot-forecast-v46';
+function forecastKey(){return (typeof spInventoryOwner!=='undefined'&&spInventoryOwner)?'stockpilot-v6-user-'+spInventoryOwner+'-forecast-v1':demoForecastKey}
+function get(){try{return JSON.parse(localStorage.getItem(forecastKey()))||{}}catch(e){return {}}}
+function put(v){try{if(typeof spInventoryOwner!=='undefined'&&spInventoryOwner&&typeof orderState!=='undefined'&&!orderState)return;localStorage.setItem(forecastKey(),JSON.stringify(v))}catch(e){alert('Sauvegarde indisponible dans ce navigateur.')}}
 function dataForForecast(id){return get()[id]||{}}
 function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(n){return n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}
