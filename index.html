@@ -515,6 +515,7 @@ function clearCloudStock(){stockRequestVersion++;const panel=stockPanel();panel.
 async function createCloudDraft(company,product,quantity){
  if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw Error('Quantité de commande invalide.');
  const identity=user?.id;if(!identity||!access)throw Error('Connectez-vous.');
+ if(!company?.id||!product?.id||product.company_id!==company.id)throw Error('Produit et entreprise incohérents.');
  if(!confirm('Créer un brouillon de commande pour '+quantity+' unité(s) de « '+product.name+' » dans « '+company.name+' » ? Aucun stock ne sera modifié.'))return;
  const t=await token();
  const created=await request('/rest/v1/orders?select=id,company_id,status','POST',{company_id:company.id,status:'draft',created_by:identity},t,{Prefer:'return=representation'});
@@ -523,7 +524,14 @@ async function createCloudDraft(company,product,quantity){
  try{
   const lines=await request('/rest/v1/order_items?select=id,order_id,product_id,quantity','POST',{order_id:orderId,product_id:product.id,quantity},await token(),{Prefer:'return=representation'});
   if(!Array.isArray(lines)||lines.length!==1||lines[0].order_id!==orderId||lines[0].product_id!==product.id||lines[0].quantity!==quantity)throw Error('Ligne de commande non confirmée.');
- }catch(err){throw Error('Brouillon '+orderId+' créé, mais ligne non confirmée : '+err.message+'. Vérifiez son état avant de réessayer.')}
+ }catch(err){
+  let recovered=false;
+  try{
+   const existing=await request('/rest/v1/order_items?select=id,order_id,product_id,quantity&order_id=eq.'+encodeURIComponent(orderId)+'&product_id=eq.'+encodeURIComponent(product.id),'GET',null,await token());
+   recovered=Array.isArray(existing)&&existing.some(row=>row.quantity===quantity);
+  }catch(lookupError){}
+  if(!recovered)throw Error('Brouillon '+orderId+' créé, mais sa ligne n’a pas pu être vérifiée : '+err.message+'. Ne relancez pas immédiatement : contrôlez ce brouillon dans l’historique pour éviter un doublon.');
+ }
  if(identity!==user?.id||!access)throw Error('Compte modifié pendant la création : vérifiez le brouillon après reconnexion.');
  await loadCloudStock();
 }
