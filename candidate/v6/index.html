@@ -554,7 +554,7 @@ async function request(path,method='GET',body=null,token=null,returnRows=false){
  const headers={'apikey':KEY};if(returnRows)headers.Prefer='return=representation';if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok){
  const message={400:'Demande refusée. Vérifiez les valeurs saisies.',401:'Connexion refusée ou session expirée.',403:'Action non autorisée.',404:'Ressource indisponible.',409:'Conflit de données. Actualisez avant de réessayer.',429:'Trop de demandes. Patientez avant de réessayer.'}[r.status]||'Service momentanément indisponible.';
  const authMessage=path.startsWith('/auth/v1/')?{
-  email_address_invalid:'Adresse e-mail refusée. Vérifiez l’adresse saisie.',
+  email_address_invalid:'Adresse e-mail refusée. Saisissez une adresse valide sur une boîte accessible. Les domaines d’exemple comme example.com ne sont pas acceptés.',
   email_address_not_authorized:'Cette adresse ne peut pas recevoir les e-mails de ce projet. Contactez le support.',
   email_not_confirmed:'Confirmez votre adresse e-mail avant de vous connecter.'
  }[data.error_code||data.code]:null;
