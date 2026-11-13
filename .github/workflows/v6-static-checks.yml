@@ -18,3 +18,5 @@ jobs:
           node-version: '22'
       - name: Validate inline JavaScript and security guards
         run: node tests/check-v6-static.cjs
+      - name: Test stock quantity conflict handling
+        run: node tests/check-v6-behavior.cjs
