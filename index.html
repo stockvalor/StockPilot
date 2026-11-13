@@ -571,6 +571,7 @@ async function receiveCloudOrder(company,order){
  const t=await token();
  const existing=await request('/rest/v1/stockpilot_receipts?select=id&company_id=eq.'+encodeURIComponent(company.id)+'&order_ref=eq.'+encodeURIComponent('v2:'+order.id)+'&limit=1','GET',null,t);
  if(identity!==user?.id||!access)throw Error('Compte modifié : recommencez après reconnexion.');
+ if(!Array.isArray(existing))throw Error('Contrôle de réception non confirmé : aucune nouvelle réception demandée.');
  if(existing.length){alert('Réception déjà enregistrée. Aucun nouveau mouvement demandé.');await loadCloudStock();return}
  if(!confirm('Réceptionner cette commande entrante ? Les quantités de stock seront AUGMENTÉES une seule fois côté serveur. Vérifiez que la marchandise a réellement été reçue.'))return;
  const receiptToken=await token();
