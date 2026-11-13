@@ -609,26 +609,29 @@ async function loadCloudStock(){
   const t=await token();
   const companies=await request('/rest/v1/companies?select=id,name&order=created_at.asc','GET',null,t);
   if(version!==stockRequestVersion||identity!==user?.id||!access)return;
-  panel.replaceChildren();
+  const staged=document.createDocumentFragment();
   if(!companies.length){panel.textContent='Aucune entreprise liée à ce compte. Aucun stock client disponible.';return}
-  const heading=document.createElement('h2');heading.textContent='Inventaire cloud privé';panel.append(heading);
+  const heading=document.createElement('h2');heading.textContent='Inventaire cloud privé';staged.append(heading);
   for(const company of companies){
    const rows=await request('/rest/v1/products?select=id,company_id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc','GET',null,await token());
    if(version!==stockRequestVersion||identity!==user?.id||!access)return;
-   const title=document.createElement('h3');title.textContent=company.name;panel.append(title);
-   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';panel.append(empty);panel.append(cloudForm(company));const history=await cloudOrderHistory(company,version,identity);if(history)panel.append(history);continue}
+   const title=document.createElement('h3');title.textContent=company.name;staged.append(title);
+   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';staged.append(empty);staged.append(cloudForm(company));const history=await cloudOrderHistory(company,version,identity);if(!history)return;staged.append(history);continue}
    for(const p of rows){
     const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
     const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
     const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(company.id,p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
     const draftQty=document.createElement('input');draftQty.className='field';draftQty.type='number';draftQty.min='1';draftQty.max='1000000';draftQty.step='1';draftQty.value='1';draftQty.style.maxWidth='75px';draftQty.setAttribute('aria-label','Quantité à commander pour '+p.name);
     const draft=document.createElement('button');draft.type='button';draft.className='btn';draft.textContent='Préparer commande';draft.addEventListener('click',async()=>{draft.disabled=true;try{await createCloudDraft(company,p,Number(draftQty.value))}catch(err){alert(err.message);draft.disabled=false}});
-    line.append(qty,save,draftQty,draft);panel.append(line)
+    line.append(qty,save,draftQty,draft);staged.append(line)
    }
-   panel.append(cloudForm(company));
-   const history=await cloudOrderHistory(company,version,identity);if(history)panel.append(history);
+   staged.append(cloudForm(company));
+   const history=await cloudOrderHistory(company,version,identity);if(!history)return;staged.append(history);
   }
-  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. La préparation manuelle crée uniquement des brouillons cloud après confirmation ; aucun stock n'est modifié. Les commandes IA et le scanner restent en démonstration.';panel.append(note);
+  if(version!==stockRequestVersion||identity!==user?.id||!access)return;
+  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. La préparation manuelle crée uniquement des brouillons cloud après confirmation ; aucun stock n'est modifié. Les commandes IA et le scanner restent en démonstration.';staged.append(note);
+  if(version!==stockRequestVersion||identity!==user?.id||!access)return;
+  panel.replaceChildren(staged);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
 }
 function render(){demoIsolationNotice();$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}const demoNotice=document.getElementById('spDemoIsolationNotice');if(demoNotice)demoNotice.hidden=false}
