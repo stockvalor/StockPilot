@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
+import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 
-test('Deux propriétaires : RLS, commandes et réceptions dans PostgreSQL local', async () => {
-  const db = await PGlite.create();
+test('Deux propriétaires : RLS, commandes, réceptions, sauvegarde et restauration dans PostgreSQL local', async () => {
+  const db = await PGlite.create({extensions:{pgcrypto}});
   try {
-    for (const name of ['./schema-snapshot.sql', '../orders-candidate.sql']) {
+    for (const name of ['./schema-snapshot.sql', '../orders-candidate.sql', './backup-schema.sql']) {
       await db.exec(await readFile(new URL(name, import.meta.url), 'utf8'));
     }
     const userA = '10000000-0000-4000-8000-000000000001';
@@ -50,6 +51,49 @@ test('Deux propriétaires : RLS, commandes et réceptions dans PostgreSQL local'
     const receive = () => db.query('select stockpilot_v2_receive_order($1) result',[order]);
     assert.equal((await receive()).rows[0].result.status,'received');
     assert.equal((await receive()).rows[0].result.status,'already_received');
+    assert.deepEqual((await getStock(productA)).rows,[{quantity:5}]);
+    const {id:backup}=(await db.query('select stockpilot_create_backup($1) id',[companyA])).rows[0];
+    await db.query('update products set quantity=9,unit_price=1.20 where id=$1',[productA]);
+    const preview = id => db.query('select product_count, changed_products, checksum_valid from stockpilot_preview_backup($1)',[id]);
+    assert.deepEqual((await preview(backup)).rows,[{product_count:1,changed_products:1,checksum_valid:true}]);
+    const {id:restore}=(await db.query(
+      'insert into stockpilot_restore_requests(company_id,backup_id,requested_by) values ($1,$2,$3) returning id',
+      [companyA,backup,userA]
+    )).rows[0];
+    const apply = () => db.query("select stockpilot_apply_restore($1,'RESTAURER MES STOCKS') id",[restore]);
+    await signIn(userB);
+    assert.deepEqual((await db.query('select id from stockpilot_backups where id=$1',[backup])).rows,[]);
+    await assert.rejects(preview(backup),/Backup inaccessible/);
+    await assert.rejects(apply(),/Restore request unavailable/);
+    await signIn(userA);
+    await assert.rejects(db.query("select stockpilot_apply_restore($1,'')",[restore]),/Explicit confirmation required/);
+    const {id:safetyBackup}=(await apply()).rows[0];
+    assert.deepEqual((await getStock(productA)).rows,[{quantity:5}]);
+    assert.deepEqual((await preview(safetyBackup)).rows,[{product_count:1,changed_products:1,checksum_valid:true}]);
+    assert.deepEqual((await db.query(
+      "select (payload->'products'->0->>'quantity')::integer quantity from stockpilot_backups where id=$1",[safetyBackup]
+    )).rows,[{quantity:9}]);
+    assert.deepEqual((await db.query('select status from stockpilot_restore_requests where id=$1',[restore])).rows,[{status:'applied'}]);
+    await assert.rejects(apply(),/Restore request unavailable/);
+    assert.deepEqual((await db.query(
+      'select quantity_before,quantity_after from stock_movements where product_id=$1 order by created_at desc limit 1',[productA]
+    )).rows,[{quantity_before:9,quantity_after:5}]);
+    const {id:missingProduct}=(await db.query(
+      "insert into products(company_id,name,quantity) values ($1,'Produit temporaire',1) returning id",[companyA]
+    )).rows[0];
+    const {id:olderBackup}=(await db.query('select stockpilot_create_backup($1) id',[companyA])).rows[0];
+    await db.query('delete from products where id=$1',[missingProduct]);
+    const {id:missingRestore}=(await db.query(
+      'insert into stockpilot_restore_requests(company_id,backup_id,requested_by) values ($1,$2,$3) returning id',
+      [companyA,olderBackup,userA]
+    )).rows[0];
+    const backupCount = () => db.query('select count(*)::integer count from stockpilot_backups where company_id=$1',[companyA]);
+    const beforeRefusal=(await backupCount()).rows;
+    await assert.rejects(db.query(
+      "select stockpilot_apply_restore($1,'RESTAURER MES STOCKS')",[missingRestore]
+    ),/snapshot product is missing/);
+    assert.deepEqual((await backupCount()).rows,beforeRefusal);
+    assert.deepEqual((await db.query('select status from stockpilot_restore_requests where id=$1',[missingRestore])).rows,[{status:'pending'}]);
     assert.deepEqual((await getStock(productA)).rows,[{quantity:5}]);
     await signIn('', 'anon');
     await assert.rejects(getStock(productA),/permission denied/);
