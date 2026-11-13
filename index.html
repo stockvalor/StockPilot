@@ -545,9 +545,11 @@ async function createCloudDraft(company,product,quantity){
 }
 async function confirmCloudOrder(company,order){
  if(!user?.id||!access||order.company_id!==company.id||order.status!=='draft'||order.stock_flow!=='inbound')throw Error('Cette commande ne peut pas être confirmée.');
- if(!confirm('Confirmer ce brouillon de commande entrante ? Aucun stock ne sera ajouté avant une réception séparée.'))return;
  const identity=user.id;
- const result=await request('/rest/v1/rpc/stockpilot_v2_confirm_order','POST',{p_order_id:order.id},await token());
+ if(!confirm('Confirmer ce brouillon de commande entrante ? Aucun stock ne sera ajouté avant une réception séparée.'))return;
+ const confirmationToken=await token();
+ if(identity!==user?.id||!access)throw Error('Compte modifié avant confirmation : aucune action demandée.');
+ const result=await request('/rest/v1/rpc/stockpilot_v2_confirm_order','POST',{p_order_id:order.id},confirmationToken);
  if(identity!==user?.id||!access)throw Error('Session changée : vérifiez la commande après reconnexion.');
  if(result!==true)throw Error('Confirmation non attestée par Supabase.');
  await loadCloudStock();
@@ -560,7 +562,9 @@ async function receiveCloudOrder(company,order){
  if(identity!==user?.id||!access)throw Error('Compte modifié : recommencez après reconnexion.');
  if(existing.length){alert('Réception déjà enregistrée. Aucun nouveau mouvement demandé.');await loadCloudStock();return}
  if(!confirm('Réceptionner cette commande entrante ? Les quantités de stock seront AUGMENTÉES une seule fois côté serveur. Vérifiez que la marchandise a réellement été reçue.'))return;
- const result=await request('/rest/v1/rpc/stockpilot_v2_receive_order','POST',{p_order_id:order.id},await token());
+ const receiptToken=await token();
+ if(identity!==user?.id||!access)throw Error('Compte modifié avant réception : aucune action demandée.');
+ const result=await request('/rest/v1/rpc/stockpilot_v2_receive_order','POST',{p_order_id:order.id},receiptToken);
  if(identity!==user?.id||!access)throw Error('Compte modifié pendant la réception. Vérifiez le justificatif avant toute nouvelle action.');
  if(!result||!['received','already_received'].includes(result.status))throw Error('Réception non attestée : vérifiez les justificatifs avant de recommencer.');
  alert(result.status==='already_received'?'Réception déjà enregistrée côté serveur. Aucun stock ajouté une seconde fois.':'Réception enregistrée côté serveur. Actualisation de l’inventaire.');
