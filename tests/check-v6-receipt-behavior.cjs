@@ -6,15 +6,15 @@ const start=html.indexOf('async function receiveCloudOrder(');
 const end=html.indexOf('\nasync function cloudOrderHistory(',start);
 assert.ok(start>=0&&end>start,'Receipt handler not found');
 const source=html.slice(start,end);
-let calls=[],lookups=[],confirms=0,alerts=[],reloads=0;
+let calls=[],lookups=[],confirms=0,alerts=[],reloads=0,account={id:'account-a'},switchOnLookup=false,switchOnToken=false,switchOnRpc=false;
 let lookupResponse=[],rpcResponse={status:'received'};
 const company={id:'company-a'};
 const order={id:'order-a',company_id:'company-a',status:'confirmed',stock_flow:'inbound'};
 const sandbox={
  Error,Array,encodeURIComponent,
- user:{id:'account-a'},access:true,
- token:async()=> 'test-token',
- request:async(path,method)=>{calls.push({path,method});return path.includes('/stockpilot_receipts?')?lookupResponse:rpcResponse},
+ get user(){return account},access:true,
+ token:async()=>{if(switchOnToken)account={id:'account-b'};return 'test-token'},
+ request:async(path,method)=>{calls.push({path,method});if(method==='POST'&&switchOnRpc)account={id:'account-b'};if(method==='GET'&&switchOnLookup)account={id:'account-b'};return path.includes('/stockpilot_receipts?')?lookupResponse:rpcResponse},
  confirm:()=>{confirms++;return true},
  alert:(msg)=>alerts.push(msg),
  loadCloudStock:async()=>{reloads++}
@@ -49,5 +49,15 @@ const receive=sandbox.receiveCloudOrder;
  rpcResponse={status:'unknown'};
  await assert.rejects(receive(company,order),/Réception non attestée/);
  assert.equal(calls.filter(x=>x.method==='POST').length,2,'Unattested result must not retry automatically');
- console.log('PASS: invalid lookup blocked, duplicate skipped, receipt accepted, unexpected RPC response rejected');
+ account={id:'account-a'};switchOnLookup=true;
+ const beforeLookupPosts=calls.filter(x=>x.method==='POST').length;
+ await assert.rejects(receive(company,order),/Compte modifié/);
+ assert.equal(calls.filter(x=>x.method==='POST').length,beforeLookupPosts,'Switch during receipt lookup must block POST');
+ switchOnLookup=false;account={id:'account-a'};switchOnToken=true;
+ await assert.rejects(receive(company,order),/Compte modifié avant réception/);
+ assert.equal(calls.filter(x=>x.method==='POST').length,beforeLookupPosts,'Switch before receipt RPC must block POST');
+ switchOnToken=false;account={id:'account-a'};switchOnRpc=true;rpcResponse={status:'received'};
+ await assert.rejects(receive(company,order),/Compte modifié pendant la réception/);
+ assert.equal(reloads,2,'Switch after receipt RPC must not reload old account');
+ console.log('PASS: receipt duplicates, invalid responses, user cancellation, company/status and account-switch races');
 })().catch(e=>{console.error(e);process.exitCode=1});
