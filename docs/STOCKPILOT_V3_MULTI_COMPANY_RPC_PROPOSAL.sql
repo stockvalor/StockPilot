@@ -37,7 +37,54 @@ BEGIN
       OR (x->>'id') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
       OR (x->>'qty') IS NULL
       OR (x->>'qty') !~ '^[0-9]{1,7}$'
-      OR (x->>'qty')::numeric NOT BETWEEN 1 AND 1000000
+      OR CASE WHEN (x->>'qty') ~ '^[0-9]{1,7}
+  ) THEN
+    RAISE EXCEPTION 'Invalid item';
+  END IF;
+  IF (SELECT count(*) FROM jsonb_array_elements(p_lines))
+    <> (SELECT count(DISTINCT x->>'id') FROM jsonb_array_elements(p_lines) AS x) THEN
+    RAISE EXCEPTION 'Duplicate item';
+  END IF;
+  -- Contrôle préalable des UUID avant conversion : aucune erreur de cast ambiguë.
+  IF EXISTS (
+    SELECT 1 FROM jsonb_array_elements(p_lines) AS x
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.products p
+      WHERE p.id = (x->>'id')::uuid AND p.company_id = p_company_id
+    )
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized item';
+  END IF;
+  INSERT INTO public.orders(company_id,status,created_by,stock_flow)
+  VALUES (p_company_id,'draft',v_uid,'inbound')
+  RETURNING id INTO v_order;
+  FOR v_line IN SELECT value FROM jsonb_array_elements(p_lines) LOOP
+    INSERT INTO public.order_items(order_id,product_id,quantity)
+    VALUES (v_order,(v_line->>'id')::uuid,(v_line->>'qty')::int);
+  END LOOP;
+  RETURN v_order;
+END
+$function$;
+
+-- IMPORTANT : appliquer CREATE + REVOKE + GRANT dans UNE transaction de migration,
+-- pour éviter toute exposition temporaire aux rôles publics.
+-- Exécuter la migration uniquement après revue de sécurité et tests isolés.
+-- IMPORTANT : restreindre explicitement EXECUTE avant exposition API.
+REVOKE ALL ON FUNCTION public.stockpilot_v3_create_order(uuid,jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.stockpilot_v3_create_order(uuid,jsonb) TO authenticated;
+
+-- Plan de vérification AVANT déploiement :
+-- 1. Auth anonyme -> refus.
+-- 2. Utilisateur A, entreprise A -> création d'un brouillon A.
+-- 3. Utilisateur A, entreprise B appartenant à B -> refus, aucune commande.
+-- 4. Produit B avec entreprise A -> refus, aucune commande.
+-- 5. Deux entreprises appartenant à A -> chaque commande créée dans la bonne entreprise.
+-- 6. Répétition d'ID, quantités 0/1000001, JSON invalide -> refus.
+-- 7. Vérifier les autorisations de la fonction et les advisors de sécurité.
+-- 8. Prévoir bascule frontend vers v3 seulement après validation serveur.
+
+              THEN (x->>'qty')::numeric NOT BETWEEN 1 AND 1000000
+              ELSE TRUE END
   ) THEN
     RAISE EXCEPTION 'Invalid item';
   END IF;
