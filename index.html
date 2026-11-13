@@ -552,6 +552,20 @@ async function confirmCloudOrder(company,order){
  if(result!==true)throw Error('Confirmation non attestée par Supabase.');
  await loadCloudStock();
 }
+async function receiveCloudOrder(company,order){
+ if(!user?.id||!access||order.company_id!==company.id||order.status!=='confirmed'||order.stock_flow!=='inbound')throw Error('Cette commande ne peut pas être réceptionnée.');
+ const identity=user.id;
+ const t=await token();
+ const existing=await request('/rest/v1/stockpilot_receipts?select=id&company_id=eq.'+encodeURIComponent(company.id)+'&order_ref=eq.'+encodeURIComponent('v2:'+order.id)+'&limit=1','GET',null,t);
+ if(identity!==user?.id||!access)throw Error('Compte modifié : recommencez après reconnexion.');
+ if(existing.length){alert('Réception déjà enregistrée. Aucun nouveau mouvement demandé.');await loadCloudStock();return}
+ if(!confirm('Réceptionner cette commande entrante ? Les quantités de stock seront AUGMENTÉES une seule fois côté serveur. Vérifiez que la marchandise a réellement été reçue.'))return;
+ const result=await request('/rest/v1/rpc/stockpilot_v2_receive_order','POST',{p_order_id:order.id},await token());
+ if(identity!==user?.id||!access)throw Error('Compte modifié pendant la réception. Vérifiez le justificatif avant toute nouvelle action.');
+ if(!result||result.status!=='received')throw Error('Réception non attestée : vérifiez les justificatifs avant de recommencer.');
+ alert('Réception enregistrée côté serveur. Actualisation de l’inventaire.');
+ await loadCloudStock();
+}
 async function cloudOrderHistory(company,version,identity){
  const orders=await request('/rest/v1/orders?select=id,company_id,status,created_at,stock_flow&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc&limit=30','GET',null,await token());
  if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
@@ -562,15 +576,22 @@ async function cloudOrderHistory(company,version,identity){
   const items=await request('/rest/v1/order_items?select=id,product_id,quantity&order_id=eq.'+encodeURIComponent(order.id)+'&limit=100','GET',null,await token());
   if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
   const details=document.createElement('p');details.textContent=items.length?items.length+' ligne(s) : '+items.map(x=>x.quantity+' unité(s) · réf. '+x.product_id.slice(0,8)).join(' ; '):'Aucune ligne de commande';line.append(details);
+  let receiptRecorded=false;
   if(order.stock_flow==='inbound'){
    const receipts=await request('/rest/v1/stockpilot_receipts?select=id,order_ref&company_id=eq.'+encodeURIComponent(company.id)+'&order_ref=eq.'+encodeURIComponent('v2:'+order.id)+'&limit=1','GET',null,await token());
    if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
+   receiptRecorded=receipts.length>0;
    const status=document.createElement('p');status.textContent=receipts.length?'Justificatif de réception retrouvé (mouvement de stock enregistré)':'Aucun justificatif de réception visible pour ce compte — statut à vérifier avant toute nouvelle réception';line.append(status);
   }
   if(order.status==='draft'&&order.stock_flow==='inbound'&&items.length){
    const confirmBtn=document.createElement('button');confirmBtn.type='button';confirmBtn.className='btn';confirmBtn.textContent='Confirmer commande entrante';
    confirmBtn.addEventListener('click',async()=>{confirmBtn.disabled=true;try{await confirmCloudOrder(company,order)}catch(err){alert('Confirmation impossible : '+err.message);confirmBtn.disabled=false}});
    line.append(confirmBtn);
+  }
+  if(order.status==='confirmed'&&order.stock_flow==='inbound'&&items.length&&!receiptRecorded){
+   const receiveBtn=document.createElement('button');receiveBtn.type='button';receiveBtn.className='btn';receiveBtn.textContent='Enregistrer la réception réelle';
+   receiveBtn.addEventListener('click',async()=>{receiveBtn.disabled=true;try{await receiveCloudOrder(company,order)}catch(err){alert('Réception à vérifier : '+err.message);receiveBtn.disabled=false}});
+   line.append(receiveBtn);
   }
   box.append(line);
  }
