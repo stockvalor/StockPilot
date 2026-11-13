@@ -547,7 +547,7 @@ async function cloudOrderHistory(company,version,identity){
   if(order.stock_flow==='inbound'){
    const receipts=await request('/rest/v1/stockpilot_receipts?select=id,order_ref&company_id=eq.'+encodeURIComponent(company.id)+'&order_ref=eq.'+encodeURIComponent('v2:'+order.id)+'&limit=1','GET',null,await token());
    if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
-   const status=document.createElement('p');status.textContent=receipts.length?'Réception enregistrée (mouvement de stock déjà effectué)':'Réception non enregistrée dans ce compte';line.append(status);
+   const status=document.createElement('p');status.textContent=receipts.length?'Justificatif de réception retrouvé (mouvement de stock enregistré)':'Aucun justificatif de réception visible pour ce compte — statut à vérifier avant toute nouvelle réception';line.append(status);
   }
   if(order.status==='draft'&&order.stock_flow==='inbound'&&items.length){
    const confirmBtn=document.createElement('button');confirmBtn.type='button';confirmBtn.className='btn';confirmBtn.textContent='Confirmer commande entrante';
