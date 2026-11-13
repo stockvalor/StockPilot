@@ -18,6 +18,8 @@ Ouvrir [la candidate locale](http://localhost:8080/) dans un profil navigateur d
 
 `tests/schema-snapshot.sql` est un schéma réduit pour PGlite. Il reproduit les tables, contraintes, droits de table et politiques publiques relevées le 13 novembre ainsi que les trois fonctions v2 de commande. Il simule l’identité authentifiée et ne reproduit pas Auth, PostgREST, les déclencheurs, les autres fonctions ni la configuration Supabase. Il ne doit pas être appliqué sur Supabase.
 
+La recette cloud du 14 novembre et les instructions pour rejouer les appels HTTP figurent dans [le journal de recette](RECETTE_20261113.md#recette-cloud-du-14-novembre-2026). La matrice ci-dessous conserve les résultats du passage local initial.
+
 ## Matrice de recette
 
 | Nº | Parcours | Statut | Vérification ou reprise |
