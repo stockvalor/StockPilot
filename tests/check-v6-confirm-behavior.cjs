@@ -7,7 +7,7 @@ const end=html.indexOf('\nasync function receiveCloudOrder(',start);
 assert.ok(start>=0&&end>start,'Order confirmation handler not found');
 let account={id:'account-a'},approved=true,reply=true,posts=0,reloads=0,switchOnToken=false,switchOnPost=false;
 const company={id:'company-a'};
-const order={id:'order-a',company_id:'company-a',status:'draft',stock_flow:'inbound'};
+const order={id:'11111111-1111-4111-8111-111111111111',company_id:'company-a',status:'draft',stock_flow:'inbound'};
 const sandbox={
  Error,
  get user(){return account},access:true,
@@ -22,6 +22,8 @@ const confirmOrder=sandbox.confirmCloudOrder;
 (async()=>{
  await assert.rejects(confirmOrder(company,{...order,company_id:'company-b'}),/ne peut pas être confirmée/);
  await assert.rejects(confirmOrder(company,{...order,status:'confirmed'}),/ne peut pas être confirmée/);
+ await assert.rejects(confirmOrder(company,{...order,id:'not-a-uuid'}),/ne peut pas être confirmée/);
+ await assert.rejects(confirmOrder(company,null),/ne peut pas être confirmée/);
  assert.equal(posts,0,'Invalid company/status must block RPC');
  approved=false;
  await confirmOrder(company,order);
