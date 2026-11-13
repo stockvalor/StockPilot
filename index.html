@@ -518,7 +518,7 @@ async function createCloudDraft(company,product,quantity){
  if(!company?.id||!product?.id||product.company_id!==company.id)throw Error('Produit et entreprise incohérents.');
  if(!confirm('Créer un brouillon de commande pour '+quantity+' unité(s) de « '+product.name+' » dans « '+company.name+' » ? Aucun stock ne sera modifié.'))return;
  const t=await token();
- const created=await request('/rest/v1/orders?select=id,company_id,status','POST',{company_id:company.id,status:'draft',created_by:identity},t,{Prefer:'return=representation'});
+ const created=await request('/rest/v1/orders?select=id,company_id,status,stock_flow','POST',{company_id:company.id,status:'draft',stock_flow:'inbound',created_by:identity},t,{Prefer:'return=representation'});
  if(!Array.isArray(created)||created.length!==1||created[0].company_id!==company.id||created[0].status!=='draft')throw Error('Création du brouillon non confirmée.');
  const orderId=created[0].id;
  try{
@@ -535,8 +535,17 @@ async function createCloudDraft(company,product,quantity){
  if(identity!==user?.id||!access)throw Error('Compte modifié pendant la création : vérifiez le brouillon après reconnexion.');
  await loadCloudStock();
 }
+async function confirmCloudOrder(company,order){
+ if(!user?.id||!access||order.company_id!==company.id||order.status!=='draft'||order.stock_flow!=='inbound')throw Error('Cette commande ne peut pas être confirmée.');
+ if(!confirm('Confirmer ce brouillon de commande entrante ? Aucun stock ne sera ajouté avant une réception séparée.'))return;
+ const identity=user.id;
+ const result=await request('/rest/v1/rpc/stockpilot_v2_confirm_order','POST',{p_order_id:order.id},await token());
+ if(identity!==user?.id||!access)throw Error('Session changée : vérifiez la commande après reconnexion.');
+ if(result!==true)throw Error('Confirmation non attestée par Supabase.');
+ await loadCloudStock();
+}
 async function cloudOrderHistory(company,version,identity){
- const orders=await request('/rest/v1/orders?select=id,status,created_at,stock_flow&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc&limit=30','GET',null,await token());
+ const orders=await request('/rest/v1/orders?select=id,company_id,status,created_at,stock_flow&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc&limit=30','GET',null,await token());
  if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
  const box=document.createElement('div');box.style.margin='16px 0';const title=document.createElement('h3');title.textContent='Commandes cloud — '+company.name;box.append(title);
  if(!orders.length){const p=document.createElement('p');p.textContent='Aucune commande cloud pour cette entreprise.';box.append(p);return box}
@@ -544,7 +553,13 @@ async function cloudOrderHistory(company,version,identity){
   const line=document.createElement('div');line.style.margin='10px 0';const header=document.createElement('p');header.textContent=new Date(order.created_at).toLocaleString('fr-FR')+' · '+order.status+' · '+(order.stock_flow||'Mouvement non précisé');line.append(header);
   const items=await request('/rest/v1/order_items?select=id,product_id,quantity&order_id=eq.'+encodeURIComponent(order.id)+'&limit=100','GET',null,await token());
   if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
-  const details=document.createElement('p');details.textContent=items.length?items.length+' ligne(s) : '+items.map(x=>x.quantity+' unité(s) · réf. '+x.product_id.slice(0,8)).join(' ; '):'Aucune ligne de commande';line.append(details);box.append(line);
+  const details=document.createElement('p');details.textContent=items.length?items.length+' ligne(s) : '+items.map(x=>x.quantity+' unité(s) · réf. '+x.product_id.slice(0,8)).join(' ; '):'Aucune ligne de commande';line.append(details);
+  if(order.status==='draft'&&order.stock_flow==='inbound'&&items.length){
+   const confirmBtn=document.createElement('button');confirmBtn.type='button';confirmBtn.className='btn';confirmBtn.textContent='Confirmer commande entrante';
+   confirmBtn.addEventListener('click',async()=>{confirmBtn.disabled=true;try{await confirmCloudOrder(company,order)}catch(err){alert('Confirmation impossible : '+err.message);confirmBtn.disabled=false}});
+   line.append(confirmBtn);
+  }
+  box.append(line);
  }
  return box;
 }
