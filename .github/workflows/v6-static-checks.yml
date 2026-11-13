@@ -20,6 +20,8 @@ jobs:
         run: node tests/check-v6-static.cjs
       - name: Test stock quantity conflict handling
         run: node tests/check-v6-behavior.cjs
+      - name: Test cloud order draft isolation
+        run: node tests/check-v6-draft-behavior.cjs
       - name: Test cloud product creation responses
         run: node tests/check-v6-product-behavior.cjs
       - name: Test receipt duplicate and malformed responses
