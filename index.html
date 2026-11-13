@@ -480,7 +480,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const URL='https://ieogcyuqgqmaebjkvlns.supabase.co', KEY='sb_publishable_XQnwV3tYH4WDwCQ6GIALQw_jzF82UzT';
 const $=id=>document.getElementById(id);let access=null,refresh=null,expiry=0,user=null;
 const status=s=>{$('spAuthStatus').textContent=s};
-async function request(path,method='GET',body=null,token=null){const headers={'apikey':KEY};if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Erreur HTTP '+r.status);return data}
+async function request(path,method='GET',body=null,token=null,extraHeaders={}){const headers={'apikey':KEY,...extraHeaders};if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Erreur HTTP '+r.status);return data}
 function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v63-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}render()}
 async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
 let stockRequestVersion=0;
@@ -488,12 +488,12 @@ function demoIsolationNotice(){let el=$('spDemoIsolationNotice');if(el)return el
 function stockPanel(){let panel=$('spCloudStockPanel');if(panel)return panel;const section=$('stock');panel=document.createElement('div');panel.id='spCloudStockPanel';panel.className='card';panel.style.marginTop='16px';panel.setAttribute('role','status');section.prepend(panel);return panel}
 async function createCloudProduct(companyId,fields){
  const t=await token();
- await request('/rest/v1/products','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t);
+ const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId)throw Error('Création non confirmée par le serveur.');
  await loadCloudStock();
 }
 async function changeCloudQuantity(id,quantity){
  if(!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000)throw Error('Quantité invalide.');
- await request('/rest/v1/products?id=eq.'+encodeURIComponent(id),'PATCH',{quantity},await token());
+ const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&select=id,quantity','PATCH',{quantity},await token(),{Prefer:'return=representation'});if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].quantity!==quantity)throw Error('Modification non confirmée : accès refusé ou produit introuvable.');
  await loadCloudStock();
 }
 function cloudForm(company){
