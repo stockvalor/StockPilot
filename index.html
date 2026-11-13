@@ -514,6 +514,7 @@ async function createCloudProduct(companyId,fields){
 async function changeCloudQuantity(companyId,id,quantity,expectedQuantity){
  if(!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000)throw Error('Quantité invalide.');
  if(!Number.isSafeInteger(expectedQuantity)||expectedQuantity<0)throw Error('Stock initial invalide : actualisez la liste.');
+ if(quantity===expectedQuantity)return;
  const identity=user?.id;
  if(!identity||!access)throw Error('Connexion nécessaire.');
  const t=await token();
