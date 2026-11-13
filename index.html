@@ -585,12 +585,12 @@ async function cloudOrderHistory(company,version,identity){
   }
   if(order.status==='draft'&&order.stock_flow==='inbound'&&items.length){
    const confirmBtn=document.createElement('button');confirmBtn.type='button';confirmBtn.className='btn';confirmBtn.textContent='Confirmer commande entrante';
-   confirmBtn.addEventListener('click',async()=>{confirmBtn.disabled=true;try{await confirmCloudOrder(company,order)}catch(err){alert('Confirmation impossible : '+err.message);confirmBtn.disabled=false}});
+   confirmBtn.addEventListener('click',async()=>{confirmBtn.disabled=true;try{await confirmCloudOrder(company,order)}catch(err){alert('Confirmation impossible : '+err.message)}finally{confirmBtn.disabled=false}});
    line.append(confirmBtn);
   }
   if(order.status==='confirmed'&&order.stock_flow==='inbound'&&items.length&&!receiptRecorded){
    const receiveBtn=document.createElement('button');receiveBtn.type='button';receiveBtn.className='btn';receiveBtn.textContent='Enregistrer la réception réelle';
-   receiveBtn.addEventListener('click',async()=>{receiveBtn.disabled=true;try{await receiveCloudOrder(company,order)}catch(err){alert('Réception à vérifier : '+err.message);receiveBtn.disabled=false}});
+   receiveBtn.addEventListener('click',async()=>{receiveBtn.disabled=true;try{await receiveCloudOrder(company,order)}catch(err){alert('Réception à vérifier : '+err.message)}finally{receiveBtn.disabled=false}});
    line.append(receiveBtn);
   }
   box.append(line);
