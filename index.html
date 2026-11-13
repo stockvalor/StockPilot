@@ -511,15 +511,16 @@ async function createCloudProduct(companyId,fields){
  const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la création. Vérifiez le résultat après reconnexion.');if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId)throw Error('Création non confirmée par le serveur.');
  await loadCloudStock();
 }
-async function changeCloudQuantity(companyId,id,quantity){
+async function changeCloudQuantity(companyId,id,quantity,expectedQuantity){
  if(!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000)throw Error('Quantité invalide.');
+ if(!Number.isSafeInteger(expectedQuantity)||expectedQuantity<0)throw Error('Stock initial invalide : actualisez la liste.');
  const identity=user?.id;
  if(!identity||!access)throw Error('Connexion nécessaire.');
  const t=await token();
  if(identity!==user?.id||!access)throw Error('Compte modifié avant mise à jour : aucune modification envoyée.');
- const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&company_id=eq.'+encodeURIComponent(companyId)+'&select=id,company_id,quantity','PATCH',{quantity},t,{Prefer:'return=representation'});
+ const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&company_id=eq.'+encodeURIComponent(companyId)+'&quantity=eq.'+encodeURIComponent(expectedQuantity)+'&select=id,company_id,quantity','PATCH',{quantity},t,{Prefer:'return=representation'});
  if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la modification. Reconnectez-vous pour vérifier le résultat.');
- if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].company_id!==companyId||changed[0].quantity!==quantity)throw Error('Modification non confirmée : accès refusé ou produit introuvable.');
+ if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].company_id!==companyId||changed[0].quantity!==quantity)throw Error('Modification non confirmée : le stock a peut-être changé entre-temps. Actualisez avant de réessayer.');
  await loadCloudStock();
 }
 function cloudForm(company){
@@ -625,7 +626,7 @@ async function loadCloudStock(){
    for(const p of rows){
     const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
     const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
-    const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(company.id,p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
+    const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(company.id,p.id,Number(qty.value),p.quantity)}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
     const draftQty=document.createElement('input');draftQty.className='field';draftQty.type='number';draftQty.min='1';draftQty.max='1000000';draftQty.step='1';draftQty.value='1';draftQty.style.maxWidth='75px';draftQty.setAttribute('aria-label','Quantité à commander pour '+p.name);
     const draft=document.createElement('button');draft.type='button';draft.className='btn';draft.textContent='Préparer commande';draft.addEventListener('click',async()=>{draft.disabled=true;try{await createCloudDraft(company,p,Number(draftQty.value))}catch(err){alert(err.message)}finally{draft.disabled=false}});
     line.append(qty,save,draftQty,draft);staged.append(line)
