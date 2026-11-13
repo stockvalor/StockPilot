@@ -507,6 +507,17 @@ function cloudForm(company){
  return form;
 }
 function clearCloudStock(){stockRequestVersion++;const panel=stockPanel();panel.replaceChildren();panel.hidden=true;const legacy=$('stockList')?.closest('.card');if(legacy)legacy.hidden=false}
+async function cloudOrderHistory(company,version,identity){
+ const orders=await request('/rest/v1/orders?select=id,status,created_at,stock_flow&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc&limit=30','GET',null,await token());
+ if(version!==stockRequestVersion||identity!==user?.id||!access)return null;
+ const box=document.createElement('div');box.style.margin='16px 0';const title=document.createElement('h3');title.textContent='Commandes cloud — '+company.name;box.append(title);
+ if(!orders.length){const p=document.createElement('p');p.textContent='Aucune commande cloud pour cette entreprise.';box.append(p);return box}
+ for(const order of orders){
+  const line=document.createElement('p');line.textContent=new Date(order.created_at).toLocaleString('fr-FR')+' · '+order.status+' · '+(order.stock_flow||'Mouvement non précisé');
+  box.append(line);
+ }
+ return box;
+}
 async function loadCloudStock(){
  const version=++stockRequestVersion, identity=user?.id;
  const panel=stockPanel();panel.hidden=false;panel.textContent='Chargement de votre inventaire sécurisé…';
@@ -522,7 +533,7 @@ async function loadCloudStock(){
    const rows=await request('/rest/v1/products?select=id,company_id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(company.id)+'&order=created_at.desc','GET',null,await token());
    if(version!==stockRequestVersion||identity!==user?.id||!access)return;
    const title=document.createElement('h3');title.textContent=company.name;panel.append(title);
-   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';panel.append(empty);panel.append(cloudForm(company));continue}
+   if(!rows.length){const empty=document.createElement('p');empty.textContent='Aucun produit enregistré dans cette entreprise.';panel.append(empty);panel.append(cloudForm(company));const history=await cloudOrderHistory(company,version,identity);if(history)panel.append(history);continue}
    for(const p of rows){
     const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
     const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
@@ -530,8 +541,9 @@ async function loadCloudStock(){
     line.append(qty,save);panel.append(line)
    }
    panel.append(cloudForm(company));
+   const history=await cloudOrderHistory(company,version,identity);if(history)panel.append(history);
   }
-  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. Les commandes et le scanner restent en mode démonstration séparé, sans synchronisation.';panel.append(note);
+  const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. L'historique cloud des commandes est consultable par entreprise. La préparation de commandes IA et le scanner restent en démonstration séparée.';panel.append(note);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
 }
 function render(){demoIsolationNotice();$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}const demoNotice=document.getElementById('spDemoIsolationNotice');if(demoNotice)demoNotice.hidden=!access}
