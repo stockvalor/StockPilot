@@ -540,6 +540,9 @@ async function createCloudDraft(company,product,quantity){
  if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw Error('Quantité de commande invalide.');
  const identity=user?.id;if(!identity||!access)throw Error('Connectez-vous.');
  if(!company?.id||!product?.id||product.company_id!==company.id)throw Error('Produit et entreprise incohérents.');
+ const draftCompanies=await request('/rest/v1/companies?select=id&limit=2','GET',null,await token());
+ if(identity!==user?.id||!access)throw Error('Compte modifié pendant la vérification des entreprises.');
+ if(draftCompanies.length!==1||draftCompanies[0].id!==company.id)throw Error('Création de commande indisponible pour ce compte : le serveur actuel exige une seule entreprise. Aucun brouillon envoyé.');
  if(!confirm('Créer un brouillon de commande pour '+quantity+' unité(s) de « '+product.name+' » dans « '+company.name+' » ? Aucun stock ne sera modifié.'))return;
  const draftToken=await token();
  if(identity!==user?.id||!access)throw Error('Compte modifié avant création : aucune commande envoyée.');
