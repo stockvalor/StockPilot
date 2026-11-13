@@ -484,6 +484,7 @@ async function request(path,method='GET',body=null,token=null){const headers={'a
 function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v63-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}render()}
 async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
 let stockRequestVersion=0;
+function demoIsolationNotice(){let el=$('spDemoIsolationNotice');if(el)return el;el=document.createElement('p');el.id='spDemoIsolationNotice';el.style.cssText='padding:12px;border:1px solid #d6a954;border-radius:10px;margin:12px 0';el.textContent='Attention : tableau de bord, commandes IA, scanner et indicateurs restent des démonstrations locales. Ils ne représentent pas les stocks de votre entreprise. Seul le panneau « Inventaire cloud privé » affiche les produits Supabase.';const target=$('stock');target.prepend(el);return el}
 function stockPanel(){let panel=$('spCloudStockPanel');if(panel)return panel;const section=$('stock');panel=document.createElement('div');panel.id='spCloudStockPanel';panel.className='card';panel.style.marginTop='16px';panel.setAttribute('role','status');section.prepend(panel);return panel}
 async function createCloudProduct(companyId,fields){
  const t=await token();
@@ -533,7 +534,7 @@ async function loadCloudStock(){
   const note=document.createElement('p');note.textContent='Stocks cloud par entreprise. Les commandes et le scanner restent en mode démonstration séparé, sans synchronisation.';panel.append(note);
  }catch(e){if(version===stockRequestVersion&&identity===user?.id){panel.replaceChildren();panel.textContent='Inventaire indisponible : '+e.message+'. Aucun produit de démonstration affiché à la place.'}}
 }
-function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}}
+function render(){demoIsolationNotice();$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){$('spCloudCompanies').replaceChildren();clearCloudStock()}else{loadCloudStock()}const demoNotice=document.getElementById('spDemoIsolationNotice');if(demoNotice)demoNotice.hidden=!access}
 async function act(fn){try{status('Traitement en cours…');await fn()}catch(e){status('Erreur : '+e.message)}}
 async function companies(){const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.')}
 function toggleRecovery(open){$('spRecoveryForm').hidden=!open;$('spForgotPassword').setAttribute('aria-expanded',String(open));if(open){$('spRecoveryEmail').value=$('spAuthEmail').value.trim();$('spRecoveryEmail').focus()}else $('spRecoveryStatus').textContent=''}
@@ -548,7 +549,7 @@ async function createCompany(name){if(!name||name.length<2)throw Error('Saisisse
 $('spCreateCompany').addEventListener('click',()=>act(async()=>createCompany($('spAuthCompany').value.trim())));
 $('spLoadCompanies').addEventListener('click',()=>act(companies));
 $('spConnectedSavePassword').addEventListener('click',()=>act(async()=>{const pw=$('spConnectedNewPassword').value;if(pw.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password:pw},await token());$('spConnectedNewPassword').value='';status('Mot de passe mis à jour. Vous pouvez désormais vous connecter avec le nouveau mot de passe.');}));
-$('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté. Les données locales V6.1 sont inchangées.')}}));
+$('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté. Inventaire cloud masqué ; les données de démonstration locales sont séparées.')}}));
 
 /* V6.8 — Copies manuelles immuables, aucune restauration automatique */
 const BACKUP_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
