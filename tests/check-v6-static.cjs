@@ -17,6 +17,10 @@ for(const [name,needle] of Object.entries({
  serverReceipt:'stockpilot_v2_receive_order',
  authRaceGuard:'authGeneration++',
  immediateLocalLogout:'access=refresh=user=null',
- cloudDemoSeparation:'Inventaire privé masqué'
+ cloudDemoSeparation:'Inventaire privé masqué',
+ receiptLookupFailClosed:'if(!Array.isArray(existing))',
+ productCreationUuidCheck:"created[0].id!=='string'",
+ stockResponseCompanyCheck:'changed[0].company_id!==companyId',
+ stockResponseQuantityCheck:'changed[0].quantity!==quantity'
 }))assert.ok(html.includes(needle),'Missing security invariant: '+name);
-console.log('PASS: '+checked+' inline scripts parse; 7 security invariants present.');
+console.log('PASS: '+checked+' inline scripts parse; 11 security invariants present.');
