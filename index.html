@@ -642,7 +642,7 @@ async function createCompany(name){if(!name||name.length<2)throw Error('Saisisse
 $('spCreateCompany').addEventListener('click',()=>act(async()=>createCompany($('spAuthCompany').value.trim())));
 $('spLoadCompanies').addEventListener('click',()=>act(companies));
 $('spConnectedSavePassword').addEventListener('click',()=>act(async()=>{const pw=$('spConnectedNewPassword').value;if(pw.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password:pw},await token());$('spConnectedNewPassword').value='';status('Mot de passe mis à jour. Vous pouvez désormais vous connecter avec le nouveau mot de passe.');}));
-$('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté. Inventaire cloud masqué ; les données de démonstration locales sont séparées.')}}));
+$('spSignout').addEventListener('click',()=>act(async()=>{const logoutAccess=access;access=refresh=user=null;expiry=0;tokenRefreshInFlight=null;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté sur cet appareil. Inventaire cloud masqué.');if(logoutAccess){try{await request('/auth/v1/logout','POST',{},logoutAccess)}catch(e){status('Session locale effacée. Révocation serveur non confirmée : '+e.message)}}}));
 
 /* V6.8 — Copies manuelles immuables, aucune restauration automatique */
 const BACKUP_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
