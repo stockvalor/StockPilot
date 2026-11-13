@@ -27,3 +27,8 @@ Permettre aux clients de se connecter avec une passkey, déverrouillée par l'em
 - Validation de sécurité avant déploiement. Préserver V5 et `main` inchangés.
 
 **Ne pas commercialiser la connexion biométrique tant que l'authentification de bout en bout n'est pas opérationnelle et testée.**
+
+## Documentation Supabase vérifiée le 13 novembre 2026
+La documentation officielle [Passkey authentication](https://supabase.com/docs/guides/auth/passkeys) décrit désormais un support **expérimental** intégré à Supabase Auth. Elle indique `@supabase/supabase-js >= 2.105.0`, l'option client `auth.experimental.passkey: true`, puis `auth.registerPasskey()` et `auth.signInWithPasskey()`. Le serveur Supabase Auth réalise la vérification WebAuthn et émet la session.
+
+**Conséquence :** privilégier cette intégration officielle plutôt qu'un service WebAuthn maison. L'activation nécessite la configuration explicite dans Authentication → Passkeys, RP ID et origines HTTPS correspondant au domaine définitif de StockPilot. Le changement de RP ID invalide les passkeys déjà créées. Ne pas activer avant choix du domaine et tests de compatibilité. Prévoir une intégration contrôlée avec la session existante, qui utilise actuellement un appel Auth REST manuel; ne pas introduire deux sources de session concurrentes.
