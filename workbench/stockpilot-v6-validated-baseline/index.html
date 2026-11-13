@@ -586,8 +586,28 @@ async function spRefreshCloudOrderView(){
  const ctx=await spCloudContext(),ps=await request('/rest/v1/products?select=id,name,sku,quantity,min_quantity,unit_price&company_id=eq.'+encodeURIComponent(ctx.company.id),'GET',null,ctx.t);
  if(user?.id!==ctx.uid||spInventoryOwner!==ctx.uid)return;
  orderState.items=ps.map(p=>({id:p.id,name:p.name,stock:p.quantity,min:p.min_quantity,target:(()=>{const saved=loadOrderState().items.find(x=>x.id===p.id);return Number.isSafeInteger(saved?.target)&&saved.target>=0?saved.target:Math.max(p.min_quantity,p.min_quantity*2)})(),price:Number(p.unit_price||0),sku:p.sku||''}));
- orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();
- const notice=document.getElementById('draftNotice');if(notice)notice.textContent='Commandes : calculs fondés sur les produits cloud. Validation du brouillon locale uniquement, sans achat.';
+ // Cloud is the source of truth for orders and receipts; keep local draft and display metadata.
+ const orders=await request('/rest/v1/orders?select=id,status,stock_flow,created_at,confirmed_at&company_id=eq.'+encodeURIComponent(ctx.company.id)+'&order=created_at.desc','GET',null,ctx.t);
+ const lines=await request('/rest/v1/order_items?select=order_id,product_id,quantity','GET',null,ctx.t);
+ const receipts=await request('/rest/v1/stockpilot_receipts?select=order_ref,created_at&company_id=eq.'+encodeURIComponent(ctx.company.id),'GET',null,ctx.t);
+ if(user?.id!==ctx.uid||spInventoryOwner!==ctx.uid||spCloudCompanyId!==ctx.company.id)return;
+ const received=new Map(receipts.map(r=>[r.order_ref,r.created_at]));
+ const localByServer=new Map(orderState.history.filter(o=>o.serverOrderId).map(o=>[String(o.serverOrderId),o]));
+ const productById=new Map(ps.map(p=>[String(p.id),p]));
+ const synced=orders.filter(o=>o.stock_flow==='inbound').map(o=>{
+  const local=localByServer.get(String(o.id));
+  const orderLines=lines.filter(l=>String(l.order_id)===String(o.id)).map(l=>{
+   const p=productById.get(String(l.product_id));
+   const old=local?.lines?.find(x=>String(x.id)===String(l.product_id));
+   return {id:l.product_id,name:p?.name||old?.name||'Produit archivé',qty:l.quantity,price:old?.price??Number(p?.unit_price||0)};
+  });
+  const receiptDate=received.get('v2:'+o.id);
+  return {id:local?.id||'CMD-'+String(o.id).slice(0,8),serverOrderId:o.id,date:o.created_at,supplier:local?.supplier||'',status:receiptDate?'reçue':'validée',receivedAt:receiptDate||null,lines:orderLines,total:orderLines.reduce((n,l)=>n+l.qty*l.price,0)};
+ });
+ // Preserve historical local-only records; never fabricate a server receipt for them.
+ orderState.history=[...synced,...orderState.history.filter(o=>!o.serverOrderId)];
+ saveOrderState();renderInventory();renderDraft();renderSummary();renderHistory();
+ const notice=document.getElementById('draftNotice');if(notice)notice.textContent='Commandes et réceptions synchronisées depuis Supabase. Brouillons locaux conservés.';
 }
 async function spAddCloudProduct(){
  const name=$('spCloudProductName').value.trim(),sku=$('spCloudProductSku').value.trim(),quantity=Number($('spCloudProductQty').value),price=Number($('spCloudProductPrice').value);
