@@ -487,13 +487,18 @@ let stockRequestVersion=0;
 function demoIsolationNotice(){let el=$('spDemoIsolationNotice');if(el)return el;el=document.createElement('p');el.id='spDemoIsolationNotice';el.style.cssText='padding:12px;border:1px solid #d6a954;border-radius:10px;margin:12px 0';el.textContent='Attention : tableau de bord, commandes IA, scanner et indicateurs restent des démonstrations locales. Ils ne représentent pas les stocks de votre entreprise. Seul le panneau « Inventaire cloud privé » affiche les produits Supabase.';const target=$('stock');target.prepend(el);return el}
 function stockPanel(){let panel=$('spCloudStockPanel');if(panel)return panel;const section=$('stock');panel=document.createElement('div');panel.id='spCloudStockPanel';panel.className='card';panel.style.marginTop='16px';panel.setAttribute('role','status');section.prepend(panel);return panel}
 async function createCloudProduct(companyId,fields){
+ const identity=user?.id;if(!identity||!access)throw Error('Connexion nécessaire.');
  const t=await token();
- const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId)throw Error('Création non confirmée par le serveur.');
+ const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la création. Vérifiez le résultat après reconnexion.');if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId)throw Error('Création non confirmée par le serveur.');
  await loadCloudStock();
 }
-async function changeCloudQuantity(id,quantity){
+async function changeCloudQuantity(companyId,id,quantity){
  if(!Number.isSafeInteger(quantity)||quantity<0||quantity>1000000)throw Error('Quantité invalide.');
- const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&select=id,quantity','PATCH',{quantity},await token(),{Prefer:'return=representation'});if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].quantity!==quantity)throw Error('Modification non confirmée : accès refusé ou produit introuvable.');
+ const identity=user?.id;
+ if(!identity||!access)throw Error('Connexion nécessaire.');
+ const changed=await request('/rest/v1/products?id=eq.'+encodeURIComponent(id)+'&company_id=eq.'+encodeURIComponent(companyId)+'&select=id,company_id,quantity','PATCH',{quantity},await token(),{Prefer:'return=representation'});
+ if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la modification. Reconnectez-vous pour vérifier le résultat.');
+ if(!Array.isArray(changed)||changed.length!==1||changed[0].id!==id||changed[0].company_id!==companyId||changed[0].quantity!==quantity)throw Error('Modification non confirmée : accès refusé ou produit introuvable.');
  await loadCloudStock();
 }
 function cloudForm(company){
@@ -539,7 +544,7 @@ async function loadCloudStock(){
    for(const p of rows){
     const line=document.createElement('div');line.style.margin='8px 0';line.textContent=p.name+' · '+(p.sku||'Sans référence')+' · ';
     const qty=document.createElement('input');qty.className='field';qty.type='number';qty.min='0';qty.max='1000000';qty.step='1';qty.value=String(p.quantity);qty.style.maxWidth='110px';qty.setAttribute('aria-label','Quantité '+p.name);
-    const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
+    const save=document.createElement('button');save.className='btn';save.type='button';save.textContent='Enregistrer quantité';save.addEventListener('click',async()=>{save.disabled=true;try{await changeCloudQuantity(company.id,p.id,Number(qty.value))}catch(err){alert('Enregistrement impossible : '+err.message);save.disabled=false}});
     line.append(qty,save);panel.append(line)
    }
    panel.append(cloudForm(company));
