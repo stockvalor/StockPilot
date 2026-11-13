@@ -509,7 +509,7 @@ async function createCloudProduct(companyId,fields){
  const identity=user?.id;if(!identity||!access)throw Error('Connexion nécessaire.');
  const t=await token();
  if(identity!==user?.id||!access)throw Error('Compte modifié avant création : aucun produit envoyé.');
- const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la création. Vérifiez le résultat après reconnexion.');if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId)throw Error('Création non confirmée par le serveur.');
+ const created=await request('/rest/v1/products?select=id,company_id','POST',{company_id:companyId,name:fields.name,sku:fields.sku||null,quantity:fields.quantity,min_quantity:fields.min_quantity,unit_price:fields.unit_price},t,{Prefer:'return=representation'});if(identity!==user?.id||!access)throw Error('Le compte a changé pendant la création. Vérifiez le résultat après reconnexion.');if(!Array.isArray(created)||created.length!==1||created[0].company_id!==companyId||typeof created[0].id!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(created[0].id))throw Error('Création non confirmée par le serveur : vérifiez la liste avant de réessayer.');
  await loadCloudStock();
 }
 async function changeCloudQuantity(companyId,id,quantity,expectedQuantity){
