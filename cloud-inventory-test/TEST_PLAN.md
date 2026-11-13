@@ -7,7 +7,7 @@
 
 ## Points bloquants avant toute mise en production
 1. Le module de test `cloud-inventory-test/index.html` est sur une branche non déployée. Il ne remplace pas l'application.
-2. Le module réutilise une session `sessionStorage` : ouvrir la page dans un nouvel onglet ne garantit pas la présence de la session. Il faut intégrer le module dans la page principale de la future préversion, ou lui donner une authentification propre. Ne jamais transférer un jeton dans une URL.
+2. **Corrigé dans le prototype** : authentification indépendante par Supabase Auth et renouvellement de jeton, en mémoire de page uniquement. Tester le flux sur Chrome Android. Ne jamais transférer un jeton dans une URL.
 3. L'importation de stocks locaux doit être facultative et confirmée, et ne doit jamais écraser un produit cloud existant. Prévoir une transaction/idempotence pour éviter un import partiel lors d'une erreur réseau.
 4. La réception doit passer par `stockpilot_v2_receive_order` avec un identifiant de commande cloud réel. Ne pas ajouter les quantités une seconde fois en local.
 5. En cas de réseau indisponible, afficher clairement une erreur de synchronisation ; ne jamais afficher « enregistré dans le cloud » avant confirmation serveur.
