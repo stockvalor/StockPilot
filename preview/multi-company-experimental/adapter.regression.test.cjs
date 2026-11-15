@@ -11,6 +11,7 @@ const B='22222222-2222-4222-8222-222222222222';
 const invalid=['',null,undefined,'not-a-uuid','11111111-1111-4111-8111-11111111111g'];
 for(const id of invalid)assert.throws(()=>api.validateCompanyId(id));
 assert.equal(api.validateCompanyId(A),A);
+assert.throws(()=>api.validateLines([{id:{toString:()=>A},qty:1}]));
 for(const qty of [0,-1,1.5,1000001,NaN,Infinity,'1',null])assert.throws(()=>api.validateLines([{id:A,qty}]));
 for(const lines of [[],new Array(101).fill({id:A,qty:1}),[{id:A,qty:1},{id:A.toUpperCase(),qty:2}]])assert.throws(()=>api.validateLines(lines));
 assert.equal(api.validateLines([{id:A,qty:1}])[0].qty,1);
