@@ -1,0 +1,26 @@
+name: V6 recette - tests isoles
+on:
+  push:
+    branches:
+      - fix/v6-finalisation-messages-cloud-20261115
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recette:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: candidate/v6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: candidate/v6/package-lock.json
+      - name: Installer les dependances figees
+        run: npm ci --ignore-scripts
+      - name: Tests locaux de non-regression
+        run: npm run test:local
