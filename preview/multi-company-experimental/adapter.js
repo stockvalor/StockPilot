@@ -7,7 +7,7 @@
     if(!Array.isArray(lines)||lines.length<1||lines.length>100)throw Error('Lignes de commande invalides');
     const seen=new Set();
     return lines.map(line=>{
-      if(!line||!UUID.test(line.id)||!Number.isInteger(line.qty)||line.qty<1||line.qty>1000000)throw Error('Produit ou quantité invalide');
+      if(!line||typeof line.id!=='string'||!UUID.test(line.id)||!Number.isInteger(line.qty)||line.qty<1||line.qty>1000000)throw Error('Produit ou quantité invalide');
       if(seen.has(line.id.toLowerCase()))throw Error('Produit en double');
       seen.add(line.id.toLowerCase());
       return {id:line.id,qty:line.qty};
