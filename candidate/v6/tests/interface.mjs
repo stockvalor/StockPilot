@@ -23,6 +23,7 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     window.eval("spSwitchInventoryOwner('test-a')");
     assert.equal(el('spDemoRibbon').hidden,true);
     assert.equal(el('spDemoTools').hidden,true);
+    assert.equal(window.document.querySelector('.sync-panel').hidden,true);
     assert.equal(el('kpiRefs').textContent,'0');
     assert.equal(el('kpiLow').textContent,'0');
     assert.doesNotMatch(el('spDashboardAlerts').textContent,/Gants/);
@@ -39,6 +40,7 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     window.eval('spSwitchInventoryOwner(null)');
     assert.equal(el('spDemoRibbon').hidden,false);
     assert.equal(el('spDemoTools').hidden,false);
+    assert.equal(window.document.querySelector('.sync-panel').hidden,false);
     assert.equal(el('kpiRefs').textContent,'0');
     assert.deepEqual(errors,[]);
   } finally {
