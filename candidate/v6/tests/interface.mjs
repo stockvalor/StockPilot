@@ -18,7 +18,11 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     await new Promise(resolve=>window.addEventListener('load',resolve,{once:true}));
     const el=id=>window.document.getElementById(id);
     assert.equal(el('kpiLow').textContent,'4');
+    assert.equal(el('spDemoRibbon').hidden,false);
+    assert.equal(el('spDemoTools').hidden,false);
     window.eval("spSwitchInventoryOwner('test-a')");
+    assert.equal(el('spDemoRibbon').hidden,true);
+    assert.equal(el('spDemoTools').hidden,true);
     assert.equal(el('kpiRefs').textContent,'0');
     assert.equal(el('kpiLow').textContent,'0');
     assert.doesNotMatch(el('spDashboardAlerts').textContent,/Gants/);
@@ -32,6 +36,9 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     assert.doesNotMatch(el('spDashboardAlerts').textContent,/Produit A/);
     window.eval("spSwitchInventoryOwner('test-a')");
     assert.equal(window.eval('spGetDraftBudget()'),45);
+    window.eval('spSwitchInventoryOwner(null)');
+    assert.equal(el('spDemoRibbon').hidden,false);
+    assert.equal(el('spDemoTools').hidden,false);
     assert.equal(el('kpiRefs').textContent,'0');
     assert.deepEqual(errors,[]);
   } finally {
