@@ -17,6 +17,8 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     const { window }=dom;
     await new Promise(resolve=>window.addEventListener('load',resolve,{once:true}));
     const el=id=>window.document.getElementById(id);
+    const demoRefs=el('kpiRefs').textContent;
+    assert.equal(demoRefs,'5');
     assert.equal(el('kpiLow').textContent,'4');
     assert.equal(el('spDemoRibbon').hidden,false);
     assert.equal(el('spDemoTools').hidden,false);
@@ -41,7 +43,8 @@ test('Les indicateurs et alertes suivent les stocks affichés', async () => {
     assert.equal(el('spDemoRibbon').hidden,false);
     assert.equal(el('spDemoTools').hidden,false);
     assert.equal(window.document.querySelector('.sync-panel').hidden,false);
-    assert.equal(el('kpiRefs').textContent,'0');
+    assert.equal(el('kpiRefs').textContent,demoRefs);
+    assert.doesNotMatch(el('spDashboardAlerts').textContent,/Produit A/);
     assert.deepEqual(errors,[]);
   } finally {
     dom.window.close();
