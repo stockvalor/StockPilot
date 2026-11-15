@@ -1,7 +1,7 @@
 /* StockPilot V6: opt-in multi-company adapter. Not loaded by existing pages. */
 (function(root){
   'use strict';
-  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   function validateCompanyId(id){if(typeof id!=='string'||!UUID.test(id))throw Error('Identifiant entreprise invalide');return id;}
   function validateLines(lines){
     if(!Array.isArray(lines)||lines.length<1||lines.length>100)throw Error('Lignes de commande invalides');
