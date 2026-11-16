@@ -156,7 +156,7 @@ function exportOrderText(i){
  const url=URL.createObjectURL(new Blob([doc],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=o.id+'-bon-commande-A4.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
  notify('Bon de commande A4 téléchargé. Ouvrez-le dans Chrome puis utilisez Imprimer / Enregistrer en PDF.');
 }
-function renderHistory(){document.getElementById('orderHistory').innerHTML=orderState.history.length?orderState.history.map((o,i)=>`<div class="historyitem"><strong>${safe(o.id)}</strong> <span class="status">${o.status==='reçue'?'Réceptionnée':o.status==='en attente'?'Validation en attente':'Validée · non envoyée'}</span><small>${new Date(o.date).toLocaleString('fr-FR')} · ${o.lines.length} ligne(s) · ${euros(o.total)}</small><small>Fournisseur : ${safe(o.supplier||'Non renseigné')}</small><div class="actions"><button class="btn" onclick="exportOrder(${i})">↓ CSV</button><button class="btn" onclick="exportOrderText(${i})">↓ Bon A4 / PDF</button>${o.status!=='validée'?'':`<button class="btn main" onclick="receiveOrder(${i})">✓ Confirmer réception</button>`}</div></div>`).join(''):'<p>Aucune commande validée pour le moment.</p>';window.dispatchEvent(new Event('stockpilot:orders-rendered'))}
+function renderHistory(){document.getElementById('orderHistory').innerHTML=orderState.history.length?orderState.history.map((o,i)=>`<div class="historyitem"><strong>${safe(o.id)}</strong> <span class="status">${o.status==='reçue'?'Réceptionnée':o.status==='en attente'?'Validation en attente':'Validée · non envoyée'}</span><small>${new Date(o.date).toLocaleString('fr-FR')} · ${o.lines.length} ligne(s) · ${euros(o.total)}</small><small>Fournisseur : ${safe(o.supplier||'Non renseigné')}</small><div class="actions"><button class="btn" onclick="exportOrder(${i})">↓ CSV</button><button class="btn" onclick="exportOrderText(${i})">↓ Bon A4 / PDF</button>${o.status==='validée'&&o.lines?.length?`<button class="btn" type="button" onclick="window.spOpenReorderEmail(${i})">Préparer l’e-mail de réassort</button>`:''}${o.status!=='validée'?'':`<button class="btn main" onclick="receiveOrder(${i})">✓ Confirmer réception</button>`}</div></div>`).join(''):'<p>Aucune commande validée pour le moment.</p>';window.dispatchEvent(new Event('stockpilot:orders-rendered'))}
 function resetInventory(){if(spInventoryOwner){notify('La réinitialisation de démonstration est désactivée pour un compte cloud.');return}if(!confirm('Réinitialiser uniquement les quantités d’exemple ? Les brouillons validés seront conservés.'))return;orderState.items=structuredClone(DEFAULT_ITEMS);orderState.draft=[];saveOrderState();renderInventory();renderDraft();renderSummary();notify('Inventaire de démonstration réinitialisé.')}
 
 function renderStockList(){const box=document.getElementById('stockList');if(!box||!orderState)return;box.innerHTML=orderState.items.map(p=>`<div class="item"><div><strong>${safe(p.name)}</strong><small>${safe(p.brand||p.category||'Produit')} · ${safe(p.id)}</small></div><span class="${p.stock<p.min?'warn':'count'}">${p.stock} en stock</span></div>`).join('')}
@@ -1144,6 +1144,14 @@ header{z-index:10001!important}
 <script>(function(){function init(){const p=document.getElementById('spLicensePanel');if(!p)return;const parent=document.body;if(p.parentElement!==parent)parent.appendChild(p);p.addEventListener('click',e=>{if(e.target===p)document.activeElement?.blur?.()});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><script>
 (async function(){
  let screen;
+ let requestedOrderId='';
+ window.spOpenReorderEmail=(index)=>{
+   const order=orderState.history[index];
+   if(order?.status!=='validée'||!order.lines?.length)return;
+   requestedOrderId=String(order.serverOrderId||order.id);
+   location.hash='email-reassort';
+   void showReorderEmail();
+ };
  async function showReorderEmail(){
    if(location.hash!=='#email-reassort'){
      if(screen?.open)screen.close();
@@ -1157,8 +1165,10 @@ header{z-index:10001!important}
        getOrders:()=>orderState.history,
        getProducts:()=>orderState.items,
        getAccount:()=>spInventoryOwner,
+       initialOrderId:requestedOrderId,
        closeRoute:()=>{if(location.hash==='#email-reassort')history.replaceState(null,'',location.pathname+location.search)}
      });
+     requestedOrderId='';
    }catch{notify('Impossible d’ouvrir le brouillon de réassort.');}
  }
  window.addEventListener('hashchange',showReorderEmail);

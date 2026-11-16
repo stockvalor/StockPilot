@@ -28,7 +28,7 @@ export function buildMailto(recipient, subject, body) {
     + '&body=' + encode(body.replace(/\r?\n/g, '\r\n'));
 }
 
-export function openReorderEmail({getOrders, getProducts, getAccount, closeRoute}) {
+export function openReorderEmail({getOrders, getProducts, getAccount, initialOrderId = '', closeRoute}) {
   const dialog = document.createElement('dialog');
   dialog.setAttribute('aria-labelledby', 'spReorderEmailTitle');
   Object.assign(dialog.style, {
@@ -129,6 +129,10 @@ export function openReorderEmail({getOrders, getProducts, getAccount, closeRoute
   window.addEventListener('stockpilot:orders-rendered', refresh);
   document.body.append(dialog);
   refresh();
+  if (orders.has(initialOrderId)) {
+    select.value = initialOrderId;
+    fill();
+  }
   dialog.showModal();
   return dialog;
 }
