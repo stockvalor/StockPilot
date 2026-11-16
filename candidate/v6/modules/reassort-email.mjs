@@ -46,24 +46,33 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
     <label for="spReorderOrder">Commande validée</label>
     <select id="spReorderOrder" style="display:block;width:100%;margin:8px 0"></select>
     <p data-empty></p>
-    <form hidden>
-      <p>
-        <label for="spReorderRecipient">Destinataire</label>
-        <small id="spReorderRecipientHelp" style="display:block">E-mail du fournisseur</small>
-        <input id="spReorderRecipient" name="recipient" type="email" aria-describedby="spReorderRecipientHelp spReorderRecipientMissing" style="display:block;width:100%;box-sizing:border-box">
-        <small id="spReorderRecipientMissing" hidden>Aucun e-mail fournisseur : saisissez-le ou copiez le brouillon.</small>
-      </p>
-      <p><label>Objet <input name="subject" required style="display:block;width:100%;box-sizing:border-box"></label></p>
-      <p><label>Message <textarea name="body" rows="12" required style="display:block;width:100%;box-sizing:border-box;line-height:1.35;min-height:6em;max-height:max(6em,42dvh);overflow-y:auto;field-sizing:content"></textarea></label></p>
-      <div class="actions">
-        <button class="btn main" type="submit">Ouvrir dans ma messagerie</button>
-        <button class="btn" type="button" data-copy>Copier le brouillon</button>
-      </div>
-      <p role="status" aria-live="polite"></p>
-      <div data-sent-actions hidden>
-        <p>Une fois le message envoyé depuis votre messagerie, indiquez-le ici.</p>
-        <button class="btn" type="button" data-mark-sent>Marquer comme envoyée</button>
-      </div>
+    <form hidden novalidate>
+      <section data-recipient-step aria-labelledby="spReorderRecipientTitle">
+        <h3 id="spReorderRecipientTitle" tabindex="-1">1. Destinataire</h3>
+        <p data-supplier hidden></p>
+        <p>
+          <label for="spReorderRecipient">E-mail du fournisseur</label>
+          <input id="spReorderRecipient" name="recipient" type="email" autocomplete="email" aria-describedby="spReorderRecipientMissing" style="display:block;width:100%;box-sizing:border-box">
+          <small id="spReorderRecipientMissing" hidden>Aucun e-mail fournisseur : saisissez-le ou copiez le brouillon.</small>
+        </p>
+        <button class="btn main" type="submit" data-next>Continuer</button>
+      </section>
+      <section data-message-step hidden aria-labelledby="spReorderMessageTitle">
+        <h3 id="spReorderMessageTitle" tabindex="-1">2. Message</h3>
+        <p data-recipient-summary></p>
+        <p><label>Objet <textarea name="subject" rows="2" required style="display:block;width:100%;box-sizing:border-box"></textarea></label></p>
+        <p><label>Message <textarea name="body" rows="12" required style="display:block;width:100%;box-sizing:border-box;line-height:1.35;min-height:6em;max-height:max(6em,42dvh);overflow-y:auto;field-sizing:content"></textarea></label></p>
+        <div class="actions">
+          <button class="btn" type="button" data-back>Retour</button>
+          <button class="btn main" type="submit">Ouvrir dans ma messagerie</button>
+          <button class="btn" type="button" data-copy>Copier le brouillon</button>
+        </div>
+        <p role="status" aria-live="polite"></p>
+        <div data-sent-actions hidden>
+          <p>Une fois le message envoyé depuis votre messagerie, indiquez-le ici.</p>
+          <button class="btn" type="button" data-mark-sent>Marquer comme envoyée</button>
+        </div>
+      </section>
     </form>`;
 
   const select = dialog.querySelector('select');
@@ -71,6 +80,11 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
   const form = dialog.querySelector('form');
   const status = dialog.querySelector('[role=status]');
   const fields = form.elements;
+  const recipientStep = dialog.querySelector('[data-recipient-step]');
+  const messageStep = dialog.querySelector('[data-message-step]');
+  const supplier = dialog.querySelector('[data-supplier]');
+  const recipientSummary = dialog.querySelector('[data-recipient-summary]');
+  const next = dialog.querySelector('[data-next]');
   const missingRecipient = dialog.querySelector('#spReorderRecipientMissing');
   const sentActions = dialog.querySelector('[data-sent-actions]');
   const preparedOrders = new Set();
@@ -79,7 +93,21 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
     sentActions.hidden = !preparedOrders.has(selected) || isSent(selected);
   }
   function updateRecipientHelp() {
-    missingRecipient.hidden = Boolean(fields.recipient.value.trim());
+    const hasRecipient = Boolean(fields.recipient.value.trim());
+    missingRecipient.hidden = hasRecipient;
+    next.textContent = hasRecipient ? 'Continuer' : 'Continuer sans adresse';
+  }
+  function showStep(showMessage, focus = true) {
+    recipientStep.hidden = showMessage;
+    messageStep.hidden = !showMessage;
+    if (showMessage) {
+      const address = fields.recipient.value.trim();
+      recipientSummary.textContent = address ? 'Destinataire : ' + address : 'Aucune adresse saisie.';
+    }
+    if (focus) {
+      dialog.scrollTop = 0;
+      (showMessage ? messageStep : recipientStep).querySelector('h3').focus();
+    }
   }
   let account = getAccount();
   let selected = '';
@@ -91,7 +119,10 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
     form.reset();
     form.hidden = !order;
     status.textContent = '';
+    showStep(false, false);
     if (!order) return;
+    supplier.hidden = !order.supplier;
+    supplier.textContent = order.supplier ? 'Fournisseur : ' + order.supplier : '';
     const draft = buildReorderEmail(order, getProducts());
     fields.recipient.value = order.supplierEmail ?? '';
     updateRecipientHelp();
@@ -126,9 +157,15 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
 
   select.addEventListener('change', fill);
   fields.recipient.addEventListener('input', updateRecipientHelp);
+  dialog.querySelector('[data-back]').addEventListener('click', () => showStep(false));
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     if (account !== getAccount() || !orders.has(selected)) return;
+    if (messageStep.hidden) {
+      if (fields.recipient.reportValidity()) showStep(true);
+      return;
+    }
+    if (!fields.subject.reportValidity() || !fields.body.reportValidity()) return;
     const link = buildMailto(fields.recipient.value.trim(), fields.subject.value, fields.body.value);
     if (link.length > 1800) {
       status.textContent = 'Le brouillon est long. Copiez-le puis collez-le dans votre messagerie.';
@@ -145,7 +182,8 @@ export function openReorderEmail({getOrders, getProducts, getAccount, initialOrd
     const copiedOrder = orders.get(selected);
     const copiedId = selected;
     const recipient = fields.recipient.value.trim();
-    const text = (recipient ? 'À : ' + recipient + '\n' : '') + 'Objet : ' + fields.subject.value + '\n\n' + fields.body.value;
+    const subject = fields.subject.value.replace(/[\r\n]+/g, ' ').trim();
+    const text = (recipient ? 'À : ' + recipient + '\n' : '') + 'Objet : ' + subject + '\n\n' + fields.body.value;
     try {
       await navigator.clipboard.writeText(text);
       if (copiedAccount !== getAccount() || orders.get(copiedId) !== copiedOrder) return;
