@@ -499,6 +499,65 @@ $('spLoadCompanies').addEventListener('click',()=>act(companies));
 $('spConnectedSavePassword').addEventListener('click',()=>act(async()=>{const pw=$('spConnectedNewPassword').value;if(pw.length<8)throw Error('Choisissez un mot de passe d’au moins 8 caractères.');await request('/auth/v1/user','PUT',{password:pw},await token());$('spConnectedNewPassword').value='';status('Mot de passe mis à jour. Vous pouvez désormais vous connecter avec le nouveau mot de passe.');}));
 $('spSignout').addEventListener('click',()=>act(async()=>{try{await request('/auth/v1/logout','POST',{},await token())}finally{access=refresh=user=null;expiry=0;try{sessionStorage.removeItem('sp-v63-session')}catch(e){}render();status('Déconnecté. Les données locales V6.1 sont inchangées.')}}));
 
+// Open the separate document screen only from its direct link.
+let documentImportScreen;
+async function routeDocumentImport(){
+  if(location.hash!=='#import-document'){
+    if(documentImportScreen?.open)documentImportScreen.close();
+    return;
+  }
+  if(documentImportScreen?.open)return;
+  try{
+    const {openImportScreen}=await import('./modules/import-document/screen.mjs');
+    if(location.hash!=='#import-document'||documentImportScreen?.open)return;
+    const account=user?.id;
+    function requireAccount(){
+      if(!account||!access||user?.id!==account){
+        throw Object.assign(Error('Connectez-vous à StockPilot, puis rouvrez cet écran.'),{status:401});
+      }
+    }
+    documentImportScreen=openImportScreen({
+      async readPhoto(bytes,signal){
+        requireAccount();
+        const authorization=await token();
+        requireAccount();
+        const response=await fetch(URL+'/functions/v1/read-stock-document',{
+          method:'POST',
+          headers:{apikey:KEY,Authorization:'Bearer '+authorization,'Content-Type':'application/octet-stream'},
+          body:bytes,signal
+        });
+        if(!response.ok)throw Object.assign(Error('Lecture indisponible.'),{status:response.status});
+        return response.json();
+      },
+      readStock(){
+        requireAccount();
+        const saved=localStorage.getItem(storeKey)||localStorage.getItem('stockpilot-futuriste-orders-v1');
+        if(saved!==null){
+          const state=JSON.parse(saved);
+          if(!Array.isArray(state?.items)||!Array.isArray(state?.history))throw Error('Le stock local ne peut pas être lu.');
+          return {...state,draft:Array.isArray(state.draft)?state.draft:[]};
+        }
+        return orderState;
+      },
+      commitStock(next){
+        requireAccount();
+        const data=JSON.stringify(next);
+        validateRestoreKey(storeKey,data);
+        localStorage.setItem(storeKey,data);
+        orderState=next;
+        renderInventory();renderDraft();renderSummary();renderHistory();
+      },
+      closeRoute(){
+        if(location.hash==='#import-document')history.replaceState(null,'',location.pathname+location.search);
+      }
+    });
+  }catch{
+    notify('L’écran d’import n’a pas pu être ouvert.');
+  }
+}
+window.addEventListener('hashchange',routeDocumentImport);
+routeDocumentImport();
+
 /* V6.8 — Copies manuelles immuables, aucune restauration automatique */
 const BACKUP_KEYS=['stockpilot-futuriste-orders-v1','stockpilot-futuriste-orders-v2','stockpilot-forecast-v46'];
 const backupStatus=s=>{$('spCloudBackupStatus').textContent=s};
