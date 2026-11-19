@@ -181,7 +181,7 @@ function confirmScanStockOut(){
  const qty=Number(raw);
  const out=document.getElementById('lookupResult');
  if(!code){out.textContent='Scannez ou saisissez une référence existante.';return}
- if(!/^\\d+$/.test(raw)||!Number.isSafeInteger(qty)||qty<1||qty>1000000){out.textContent='Indiquez une quantité entière positive.';return}
+ if(!/^[0-9]+$/.test(raw)||!Number.isSafeInteger(qty)||qty<1||qty>1000000){out.textContent='Indiquez une quantité entière positive.';return}
  const item=orderState.items.find(p=>p.id===code);
  if(!item){out.textContent='Référence absente de cet inventaire local. Aucune sortie effectuée.';return}
  if(!Number.isSafeInteger(item.stock)||item.stock<qty){out.textContent='Stock insuffisant : '+item.stock+' unité(s) disponibles. Aucune sortie effectuée.';return}
