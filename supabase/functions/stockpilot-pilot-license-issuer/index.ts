@@ -1,23 +1,29 @@
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 
-const adminOrigin = "http://127.0.0.1:4173";
+const adminOrigins = new Set([
+  "http://127.0.0.1:4173",
+  "https://stockpilot-ai-admin-recette.triplepheasant4.chatgpt.site",
+]);
 const recipeUrl = "https://qofvnaomefqkemtxhmoi.supabase.co";
 const publicKey = "BGfsikP42JZ1339Vvs7vE08G4v7oUZmvurntKDazO8dFvLIXwYj_0OTnyCab6L3pVYb1K_Rqbc8mX3zdLHkzQy0";
-const headers = {
-  "Access-Control-Allow-Origin": adminOrigin,
+const baseHeaders = {
+  "Vary": "Origin",
   "Access-Control-Allow-Headers": "authorization,content-type,apikey,x-client-info",
   "Access-Control-Allow-Methods": "OPTIONS,POST",
   "Cache-Control": "no-store",
   "Content-Type": "application/json",
 };
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
 const bytes = (value: string) => Uint8Array.from(atob(value.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
 const base64url = (value: Uint8Array) => btoa(String.fromCharCode(...value)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 const encode = (value: string) => new TextEncoder().encode(value);
 const auth = { persistSession: false, autoRefreshToken: false };
 
 Deno.serve(async (req) => {
-  if (req.headers.get("Origin") !== adminOrigin) return json({error: "ORIGIN_DENIED"}, 403);
+  const origin = req.headers.get("Origin");
+  const headers = new Headers(baseHeaders);
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+  if (!origin || !adminOrigins.has(origin)) return json({error: "ORIGIN_DENIED"}, 403);
+  headers.set("Access-Control-Allow-Origin", origin);
   if (req.method === "OPTIONS") return new Response(null, {status: 204, headers});
   if (req.method !== "POST") return json({error: "METHOD_DENIED"}, 405);
 
