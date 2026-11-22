@@ -482,7 +482,11 @@ const status=s=>{$('spAuthStatus').textContent=s};
 async function request(path,method='GET',body=null,token=null){const headers={'apikey':KEY};if(body!==null)headers['Content-Type']='application/json';if(token)headers['Authorization']='Bearer '+token;const r=await fetch(URL+path,{method,headers,body:body===null?undefined:JSON.stringify(body)});let data;try{data=await r.json()}catch{data={}}if(!r.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Erreur HTTP '+r.status);return data}
 function session(data){access=data.access_token||null;refresh=data.refresh_token||null;expiry=Date.now()+Math.max(0,(data.expires_in||3600)-90)*1000;user=data.user||null;try{sessionStorage.setItem('sp-v6-recette-session',JSON.stringify({access,refresh,expiry,user}))}catch(e){}render()}
 async function token(){if(!access)throw Error('Connectez-vous.');if(Date.now()<expiry)return access;if(!refresh)throw Error('Session expirée, reconnectez-vous.');const d=await request('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:refresh});session(d);return access}
-function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access)$('spCloudCompanies').replaceChildren()}
+function render(){$('spCloudGuest').hidden=!!access;$('spCloudConnected').hidden=!access;$('spCloudIdentity').textContent=access?'Session ouverte : '+(user?.email||'utilisateur connecté'):'';if(!access){
+  $('spCloudCompanies').replaceChildren();
+  if ($('spLicenseCode')) $('spLicenseCode').value = '';
+  if ($('spLicenseResult')) $('spLicenseResult').textContent = '';
+}}
 async function act(fn){try{status('Traitement en cours…');await fn()}catch(e){status('Erreur : '+e.message)}}
 async function companies(){const d=await request('/rest/v1/companies?select=id,name,created_at&order=created_at.desc','GET',null,await token());const list=$('spCloudCompanies');list.replaceChildren();if(!d.length){list.textContent='Aucune entreprise créée sur ce compte.';return}for(const c of d){const p=document.createElement('p');p.textContent='✓ '+c.name+' — espace sécurisé créé';list.append(p)}status(d.length+' entreprise(s) accessible(s) à ce compte.')}
 function toggleRecovery(open){$('spRecoveryForm').hidden=!open;$('spForgotPassword').setAttribute('aria-expanded',String(open));if(open){$('spRecoveryEmail').value=$('spAuthEmail').value.trim();$('spRecoveryEmail').focus()}else $('spRecoveryStatus').textContent=''}
@@ -505,6 +509,49 @@ const backupStatus=s=>{$('spCloudBackupStatus').textContent=s};
 function canonical(o){if(Array.isArray(o))return '['+o.map(canonical).join(',')+']';if(o&&typeof o==='object')return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canonical(o[k])).join(',')+'}';return JSON.stringify(o)}
 async function hashText(s){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function collectBackup(){const data={};for(const k of BACKUP_KEYS){const v=localStorage.getItem(k);if(v!==null){if(typeof validateRestoreKey!=='function')throw Error('Validateur local indisponible');validateRestoreKey(k,v);data[k]=v}}if(!Object.keys(data).length)throw Error('Aucune donnée locale à sauvegarder.');return {format:'stockpilot-cloud-backup-v1',createdAt:new Date().toISOString(),data}}
+document.addEventListener('DOMContentLoaded', () => {
+  const form = $('spLicenseForm');
+  const input = $('spLicenseCode');
+  const result = $('spLicenseResult');
+  const button = $('spLicenseCheck');
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!access) {
+      result.textContent = 'Connectez-vous à votre espace RECETTE, puis revenez ici.';
+      return;
+    }
+    const code = input.value.trim();
+    if (!code || code.length > 5600) {
+      result.textContent = 'Saisissez le code de licence fourni par votre administrateur.';
+      return;
+    }
+    button.disabled = true;
+    result.textContent = 'Activation en cours…';
+    try {
+      const sessionUser = user?.id;
+      const id = await request('/rest/v1/rpc/stockpilot_activate_license', 'POST', {p_token:code}, await token());
+      if (!sessionUser || user?.id !== sessionUser) return;
+      if (typeof id !== 'string' || !id) throw new Error('Activation non confirmée');
+      input.value = '';
+      result.textContent = 'Licence activée.';
+      // The server has confirmed the hash of this exact code for the signed-in account.
+      try {
+        const part = code.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(part), c => c.charCodeAt(0))));
+        if (payload.license_id === id && payload.expires_at) {
+          const format = new Intl.DateTimeFormat('fr-FR', {dateStyle:'long', timeStyle:'short', timeZone:'Europe/Paris'});
+          result.textContent += ' Expiration le ' + format.format(new Date(payload.expires_at)) + ' (heure de Paris).';
+        }
+      } catch {
+        // Other registered formats may omit expiry from the code.
+      }
+    } catch {
+      if (access) result.textContent = 'Activation refusée ou indisponible. Vérifiez le code et le compte RECETTE utilisé.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+});
 async function myCompany(){const rows=await request('/rest/v1/companies?select=id,name&order=created_at.asc&limit=1','GET',null,await token());if(!rows.length)throw Error('Créez votre entreprise avant la sauvegarde.');return rows[0]}
 function backupPassphrase(){const e=$('spCloudPassphrase');const p=e?.value||'';if(p.length<16||p.length>256)throw Error('Saisissez une phrase secrète de 16 à 256 caractères. Conservez-la hors de StockPilot : sans elle, la copie est irrécupérable.');return p}
 function b64(bytes){let s='';for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s)}
@@ -542,17 +589,28 @@ header{z-index:10001!important}
 <button id="spLicenseFab" type="button" aria-label="Informations sur les licences">🔑 Licence</button>
 <div id="spLicensePanel" role="dialog" aria-modal="true" aria-label="Licence StockPilot AI"><div class="spLicenseCard">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0">Licence StockPilot AI</h2><button id="spLicenseClose" type="button">Fermer ✕</button></div>
-<p style="color:#65edbd;font-weight:700">V6.8.12 · Vérification cryptographique expérimentale</p>
-<p>Licence à vie locale, avec sauvegarde cloud facultative.</p>
-<div style="padding:12px;background:#0c2630;border-radius:12px;border:1px solid #357b78"><strong>État : mode de test</strong><p class="spLicenseHint">Aucune licence commerciale n'est encore délivrée. Cette interface ne verrouille pas vos stocks et n'effectue aucun paiement.</p></div>
-<label for="spLicenseCode" style="display:block;margin-top:18px">Code de licence (préparation du parcours)</label>
-<input id="spLicenseCode" placeholder="Ex. SP-XXXX-XXXX" autocomplete="off" spellcheck="false"/>
-<button id="spLicenseCheck" type="button">Vérifier le code</button>
-<p id="spLicenseResult" role="status" class="spLicenseHint">Vérification locale des signatures ECDSA P-256 disponible. Émission et activation commerciales non configurées.</p>
-<hr style="border:0;border-top:1px solid #ffffff22;margin:18px 0"/>
-<p class="spLicenseHint">Important : un code saisi ici n'active aucune licence. Une future version devra vérifier une signature numérique, empêcher les activations frauduleuses et conserver l'accès local hors connexion. Ne saisissez pas de données confidentielles.</p>
+<form id="spLicenseForm">
+<label for="spLicenseCode">Code de licence</label>
+<input id="spLicenseCode" autocomplete="off" spellcheck="false" maxlength="5600" required>
+<button id="spLicenseCheck" type="submit">Activer la licence</button>
+<p id="spLicenseResult" role="status" class="spLicenseHint"></p>
+</form>
 </div></div>
-<script>(function(){function init(){const panel=document.getElementById('spLicensePanel'),fab=document.getElementById('spLicenseFab'),close=document.getElementById('spLicenseClose'),check=document.getElementById('spLicenseCheck'),input=document.getElementById('spLicenseCode'),result=document.getElementById('spLicenseResult');fab.onclick=()=>{panel.classList.add('open');input.focus()};close.onclick=()=>panel.classList.remove('open');panel.addEventListener('click',e=>{if(e.target===panel)panel.classList.remove('open')});document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open')});check.onclick=()=>{result.textContent='Code non activé : service de vérification sécurisé non encore configuré. Vos stocks restent accessibles.'}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><style>
+<script>
+(function(){
+  const panel = document.getElementById('spLicensePanel');
+  const open = document.getElementById('spLicenseFab');
+  const close = document.getElementById('spLicenseClose');
+  open.onclick = () => {
+    panel.classList.add('open');
+    document.getElementById('spLicenseCode').focus();
+  };
+  close.onclick = () => {
+    panel.classList.remove('open');
+    open.focus();
+  };
+})();
+</script><style>
 /* V6.8.11: license dialog above sticky header and mobile menu */
 #spLicensePanel{z-index:2147483000!important;isolation:isolate;overflow-y:auto;overscroll-behavior:contain;align-items:safe center}
 #spLicensePanel .spLicenseCard{position:relative;z-index:1;max-height:min(90dvh,90vh);overflow-y:auto;overscroll-behavior:contain}
@@ -560,12 +618,4 @@ header{z-index:10001!important}
 @media(max-width:850px){#spLicensePanel{padding:12px;align-items:center}#spLicensePanel .spLicenseCard{max-height:calc(100dvh - 24px);padding:18px}}
 </style>
 <script>(function(){function init(){const p=document.getElementById('spLicensePanel');if(!p)return;const parent=document.body;if(p.parentElement!==parent)parent.appendChild(p);p.addEventListener('click',e=>{if(e.target===p)document.activeElement?.blur?.()});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><script>
-/* Offline verification prototype: public key only; issuance service is NOT deployed. */
-(function(){
-const PUBLIC_KEY='BADfiYqQKXHQBKKbLBUBhbPVMvHW1f9-GP2PMPI8PWo0xKFHypuLa48TPSJWMjM8ZKZjQbWdzyyq_KoId6fn5OQ';
-function bytes(v){if(!/^[A-Za-z0-9_-]+$/.test(v))throw Error('Format invalide');const s=v.replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(s+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0))}
-async function verify(value){if(!crypto.subtle)throw Error('Vérification cryptographique indisponible');const parts=value.trim().split('.');if(parts.length!==2)throw Error('Format de licence invalide');const payload=bytes(parts[0]),signature=bytes(parts[1]);if(payload.length>4096||signature.length!==64)throw Error('Taille de licence invalide');const key=await crypto.subtle.importKey('raw',bytes(PUBLIC_KEY),{name:'ECDSA',namedCurve:'P-256'},false,['verify']);const ok=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,signature,payload);if(!ok)throw Error('Signature non valide');const obj=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(payload));if(obj.product!=='StockPilot AI'||obj.edition!=='lifetime'||obj.schema!==1||typeof obj.license_id!=='string'||!/^SP-[A-Z0-9-]{8,64}$/.test(obj.license_id))throw Error('Contenu de licence invalide');return obj}
-function init(){const b=document.getElementById('spLicenseCheck'),i=document.getElementById('spLicenseCode'),o=document.getElementById('spLicenseResult');if(!b||!i||!o)return;b.addEventListener('click',async function(e){e.stopImmediatePropagation();e.preventDefault();b.disabled=true;o.textContent='Vérification cryptographique locale en cours…';try{const data=await verify(i.value);o.textContent='Signature vérifiée pour '+data.license_id+'. Prototype uniquement : activation commerciale et association au client non configurées.'}catch(err){o.textContent='Licence non activée : '+err.message+'. Vos stocks restent accessibles.'}finally{b.disabled=false}},true)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
 </script></body></html>

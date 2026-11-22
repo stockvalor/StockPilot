@@ -1,0 +1,1 @@
+{"name":"StockPilot Admin","short_name":"SP Admin","description":"Gestion privée des entreprises et licences StockPilot AI","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#101c2e","theme_color":"#101c2e","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101c2e">
+<link rel="manifest" href="manifest.webmanifest">
+<title>StockPilot AI Admin · RECETTE</title>
+<style>
+body{background:#101c2e;color:white;font:16px system-ui;margin:0}
+main{max-width:540px;margin:40px auto;padding:20px}
+h1{color:#baff00}
+input,select,button{width:100%;box-sizing:border-box;padding:12px;margin:6px 0 12px;border-radius:8px;font:inherit}
+input,select{background:#20324a;color:white;border:1px solid #8899ae}
+button{background:#baff00;color:#101c2e;border:0;font-weight:bold}
+button:disabled{opacity:.55}
+section,form{margin-bottom:20px}
+</style>
+</head>
+<body>
+<main>
+<h1>StockPilot AI Admin</h1>
+<p>Environnement RECETTE</p>
+<form id="login">
+<label for="email">E-mail administrateur</label>
+<input id="email" type="email" autocomplete="username" required>
+<label for="password">Mot de passe</label>
+<input id="password" type="password" autocomplete="current-password" required>
+<button>Se connecter</button>
+</form>
+<section id="dashboard" hidden>
+<button id="logout" type="button">Déconnexion</button>
+<form id="lookup">
+<label for="query">Nom de l’entreprise</label>
+<input id="query" type="search" minlength="2" maxlength="120" required>
+<button>Rechercher</button>
+</form>
+<form id="issue">
+<label for="company">Entreprise</label>
+<select id="company" required><option value="">Sélectionner une entreprise</option></select>
+<label for="days">Durée de la licence</label>
+<select id="days"><option value="7">7 jours</option><option value="15" selected>15 jours</option></select>
+<button id="generate" disabled>Générer une licence</button>
+</form>
+<div id="result" hidden>
+<label for="license">Code de licence à transmettre au client</label>
+<input id="license" readonly>
+<button id="copy" type="button">Copier le code</button>
+</div>
+</section>
+<p id="status" role="status"></p>
+</main>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.95.0';
+
+const db = createClient('https://qofvnaomefqkemtxhmoi.supabase.co', 'sb_publishable_mfQBN6GXrl7d9xmHNe-Cvg_aMm_HYmu', {
+  auth: {storageKey: 'stockpilot-recette-license-admin', persistSession: false, detectSessionInUrl: false}
+});
+const el = id => document.getElementById(id);
+const status = message => { el('status').textContent = message; };
+const expiry = new Intl.DateTimeFormat('fr-FR', {dateStyle:'long', timeStyle:'short', timeZone:'Europe/Paris'});
+const errors = {
+  ADMIN_REQUIRED: 'Droits administrateur RECETTE requis.',
+  AUTH_REQUIRED: 'Reconnectez-vous avec votre compte RECETTE.',
+  SIGNING_KEY_REQUIRED: 'Le secret de signature est absent du serveur.',
+  INVALID_SIGNING_KEY: 'Le secret de signature est illisible.',
+  WRONG_SIGNING_KEY: 'Le secret de signature ne correspond pas à la clé publique.',
+  COMPANY_REQUIRED: 'Sélectionnez une entreprise disponible.',
+  INVALID_DURATION: 'Choisissez 7 ou 15 jours.',
+  LICENSE_NOT_REGISTERED: 'Le serveur n’a pas confirmé l’enregistrement de la licence.'
+};
+
+async function call(action, body = {}) {
+  const {data, error} = await db.functions.invoke('stockpilot-pilot-license-issuer', {body:{action, ...body}});
+  if (!error) return data;
+  const result = error.context?.json ? await error.context.json().catch(() => null) : null;
+  throw new Error(errors[result?.error] || 'Service de licences indisponible.');
+}
+
+el('login').onsubmit = async event => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button');
+  button.disabled = true;
+  status('Connexion…');
+  try {
+    const {error} = await db.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});
+    if (error) throw new Error('Connexion RECETTE impossible. Vérifiez vos identifiants.');
+    const {signingReady} = await call('signing_status');
+    if (signingReady !== true) throw new Error('Signature non confirmée par le serveur.');
+    el('login').hidden = true;
+    el('dashboard').hidden = false;
+    status('Signature vérifiée en RECETTE.');
+  } catch (error) {
+    await db.auth.signOut({scope:'local'});
+    status(error.message);
+  } finally {
+    el('password').value = '';
+    button.disabled = false;
+  }
+};
+
+el('lookup').onsubmit = async event => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button');
+  const company = el('company');
+  button.disabled = true;
+  el('generate').disabled = true;
+  company.replaceChildren(new Option('Sélectionner une entreprise', ''));
+  status('Recherche…');
+  try {
+    const {companies} = await call('lookup', {query:el('query').value.trim()});
+    for (const row of companies) company.add(new Option(row.name, row.id));
+    status(companies.length ? 'Sélectionnez une entreprise.' : 'Aucune entreprise trouvée.');
+  } catch (error) {
+    status(error.message);
+  } finally {
+    button.disabled = false;
+  }
+};
+
+el('company').onchange = () => { el('generate').disabled = !el('company').value; };
+el('issue').onsubmit = async event => {
+  event.preventDefault();
+  const company = el('company');
+  const durationDays = Number(el('days').value);
+  const name = company.selectedOptions[0].text;
+  if (!window.confirm(`Générer une licence de ${durationDays} jours pour ${name} ?`)) return;
+  const controls = [el('generate'), company, el('days'), el('lookup').querySelector('button'), el('logout')];
+  controls.forEach(control => { control.disabled = true; });
+  status('Génération en cours…');
+  try {
+    const {token, expiresAt} = await call('issue', {companyId:company.value, durationDays});
+    el('license').value = token;
+    el('result').hidden = false;
+    status('Licence générée. Expiration le ' + expiry.format(new Date(expiresAt)) + ' (heure de Paris).');
+  } catch (error) {
+    status(error.message + ' Vérifiez l’enregistrement avant toute nouvelle tentative.');
+  } finally {
+    controls.forEach(control => { control.disabled = false; });
+  }
+};
+
+el('copy').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(el('license').value);
+    status('Code copié.');
+  } catch {
+    el('license').select();
+  }
+};
+
+el('logout').onclick = async () => {
+  await db.auth.signOut({scope:'local'});
+  location.reload();
+};
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
