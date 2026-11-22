@@ -42,6 +42,11 @@ section,form{margin-bottom:20px}
 <select id="days"><option value="7">7 jours</option><option value="15" selected>15 jours</option></select>
 <button id="generate" disabled>Générer une licence</button>
 </form>
+<section id="confirmation" hidden aria-label="Confirmation de la génération">
+<p id="confirmationSummary"></p>
+<button id="confirmIssue" type="button">Confirmer la génération</button>
+<button id="cancelIssue" type="button">Annuler</button>
+</section>
 <div id="result" hidden>
 <label for="license">Code de licence à transmettre au client</label>
 <input id="license" readonly>
@@ -105,6 +110,7 @@ el('lookup').onsubmit = async event => {
   const company = el('company');
   button.disabled = true;
   el('generate').disabled = true;
+  el('confirmation').hidden = true;
   company.replaceChildren(new Option('Sélectionner une entreprise', ''));
   status('Recherche…');
   try {
@@ -118,14 +124,30 @@ el('lookup').onsubmit = async event => {
   }
 };
 
-el('company').onchange = () => { el('generate').disabled = !el('company').value; };
-el('issue').onsubmit = async event => {
+el('company').onchange = () => {
+  el('generate').disabled = !el('company').value;
+  el('confirmation').hidden = true;
+};
+el('days').onchange = () => { el('confirmation').hidden = true; };
+el('cancelIssue').onclick = () => {
+  el('confirmation').hidden = true;
+  el('generate').focus();
+};
+el('issue').onsubmit = event => {
   event.preventDefault();
   const company = el('company');
-  const durationDays = Number(el('days').value);
+  if (!company.value) return;
   const name = company.selectedOptions[0].text;
-  if (!window.confirm(`Générer une licence de ${durationDays} jours pour ${name} ?`)) return;
+  el('confirmationSummary').textContent = `Générer une licence de ${el('days').value} jours pour ${name} ?`;
+  el('confirmation').hidden = false;
+  el('confirmIssue').focus();
+};
+el('confirmIssue').onclick = async () => {
+  const company = el('company');
+  if (el('confirmation').hidden || !company.value) return;
+  const durationDays = Number(el('days').value);
   const controls = [el('generate'), company, el('days'), el('lookup').querySelector('button'), el('logout')];
+  el('confirmation').hidden = true;
   controls.forEach(control => { control.disabled = true; });
   status('Génération en cours…');
   try {
