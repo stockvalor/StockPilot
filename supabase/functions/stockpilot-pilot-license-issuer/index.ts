@@ -37,7 +37,10 @@ Deno.serve(async (req) => {
     const db = createClient(recipeUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {auth});
     const {data: {user}, error: authError} = await db.auth.getUser(jwt);
     if (authError || !user) return json({error: "AUTH_REQUIRED"}, 401);
-    if (user.app_metadata.stockpilot_recipe_license_admin !== true) {
+    if (
+      user.id !== "14687d1d-e7b5-45a3-ac9e-3659e8cf743b" ||
+      user.app_metadata.stockpilot_recipe_license_admin !== true
+    ) {
       return json({error: "ADMIN_REQUIRED"}, 403);
     }
 
